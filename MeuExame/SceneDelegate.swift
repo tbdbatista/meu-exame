@@ -22,11 +22,11 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // Configure window programmatically
         window = UIWindow(windowScene: windowScene)
         
-        // TODO: Replace with Login screen when implemented
-        let initialViewController = UIViewController()
-        initialViewController.view.backgroundColor = .systemBackground
+        // Configurar LoginViewController como tela inicial
+        let loginViewController = LoginViewController()
+        let navigationController = UINavigationController(rootViewController: loginViewController)
         
-        window?.rootViewController = initialViewController
+        window?.rootViewController = navigationController
         window?.makeKeyAndVisible()
     }
 
