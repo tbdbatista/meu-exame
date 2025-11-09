@@ -5,15 +5,29 @@ import Foundation
 /// formatting data for display and delegating business logic.
 final class LoginPresenter {
     
-    // MARK: - VIPER Properties
+    // MARK: - VIPER Properties (PresenterProtocol conformance)
     
-    weak var view: LoginViewProtocol?
-    var interactor: LoginInteractorProtocol?
-    var router: LoginRouterProtocol?
+    weak var view: ViewProtocol?
+    var interactor: InteractorProtocol?
+    var router: RouterProtocol?
     
     // MARK: - Initializer
     
     init() {}
+    
+    // MARK: - Private Helpers
+    
+    private var loginView: LoginViewProtocol? {
+        return view as? LoginViewProtocol
+    }
+    
+    private var loginInteractor: LoginInteractorProtocol? {
+        return interactor as? LoginInteractorProtocol
+    }
+    
+    private var loginRouter: LoginRouterProtocol? {
+        return router as? LoginRouterProtocol
+    }
 }
 
 // MARK: - LoginPresenterProtocol
@@ -38,40 +52,40 @@ extension LoginPresenter: LoginPresenterProtocol {
         
         // Validate inputs (presentation-level validation)
         guard !email.isEmpty else {
-            view?.showError(title: "Erro", message: "Por favor, preencha o e-mail")
+            loginView?.showError(title: "Erro", message: "Por favor, preencha o e-mail")
             return
         }
         
         guard !password.isEmpty else {
-            view?.showError(title: "Erro", message: "Por favor, preencha a senha")
+            loginView?.showError(title: "Erro", message: "Por favor, preencha a senha")
             return
         }
         
         guard isValidEmail(email) else {
-            view?.showError(title: "Erro", message: "Por favor, insira um e-mail válido")
+            loginView?.showError(title: "Erro", message: "Por favor, insira um e-mail válido")
             return
         }
         
         guard password.count >= 6 else {
-            view?.showError(title: "Erro", message: "A senha deve ter no mínimo 6 caracteres")
+            loginView?.showError(title: "Erro", message: "A senha deve ter no mínimo 6 caracteres")
             return
         }
         
         // Show loading
-        view?.showLoading()
+        loginView?.showLoading()
         
         // Delegate to Interactor for business logic
-        interactor?.performLogin(email: email, password: password)
+        loginInteractor?.performLogin(email: email, password: password)
     }
     
     func didTapRegister() {
         print("📱 LoginPresenter: Register button tapped")
-        router?.navigateToRegister()
+        loginRouter?.navigateToRegister()
     }
     
     func didTapForgotPassword() {
         print("📱 LoginPresenter: Forgot password button tapped")
-        router?.navigateToForgotPassword()
+        loginRouter?.navigateToForgotPassword()
     }
     
     // MARK: - Helper Methods
@@ -91,29 +105,29 @@ extension LoginPresenter: LoginInteractorOutputProtocol {
         print("✅ LoginPresenter: Login succeeded - User ID: \(userId)")
         
         // Hide loading
-        view?.hideLoading()
+        loginView?.hideLoading()
         
         // Clear fields
-        view?.clearFields()
+        loginView?.clearFields()
         
         // Show success message (optional, pode navegar direto)
-        // view?.showSuccess(title: "Sucesso", message: "Login realizado com sucesso!")
+        // loginView?.showSuccess(title: "Sucesso", message: "Login realizado com sucesso!")
         
         // Navigate to main screen
-        router?.navigateToMainScreen()
+        loginRouter?.navigateToMainScreen()
     }
     
     func loginDidFail(error: Error) {
         print("❌ LoginPresenter: Login failed - Error: \(error.localizedDescription)")
         
         // Hide loading
-        view?.hideLoading()
+        loginView?.hideLoading()
         
         // Format error message
         let errorMessage = formatErrorMessage(error)
         
         // Show error to user
-        view?.showError(title: "Erro no Login", message: errorMessage)
+        loginView?.showError(title: "Erro no Login", message: errorMessage)
     }
     
     // MARK: - Error Formatting

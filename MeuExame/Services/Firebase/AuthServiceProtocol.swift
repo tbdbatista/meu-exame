@@ -43,40 +43,21 @@ protocol AuthServiceProtocol {
 // MARK: - FirebaseManager + AuthServiceProtocol
 
 extension FirebaseManager: AuthServiceProtocol {
-    func signIn(email: String, password: String, completion: @escaping (Result<String, Error>) -> Void) {
-        // Usa o método existente do FirebaseAuthenticationService
-        self.signIn(email: email, password: password) { result in
-            switch result {
-            case .success(let authResult):
-                completion(.success(authResult.user.uid))
-            case .failure(let error):
-                completion(.failure(error))
-            }
-        }
-    }
-    
-    func signUp(email: String, password: String, completion: @escaping (Result<String, Error>) -> Void) {
-        // Usa o método existente do FirebaseAuthenticationService
-        self.signUp(email: email, password: password) { result in
-            switch result {
-            case .success(let authResult):
-                completion(.success(authResult.user.uid))
-            case .failure(let error):
-                completion(.failure(error))
-            }
-        }
-    }
-    
     var currentUserId: String? {
-        return currentUser?.uid
+        return auth?.currentUser?.uid
     }
     
     var isSignedIn: Bool {
-        return currentUser != nil
+        return auth?.currentUser != nil
     }
     
     func sendPasswordReset(email: String, completion: @escaping (Result<Void, Error>) -> Void) {
-        Auth.auth().sendPasswordReset(withEmail: email) { error in
+        guard let auth = auth else {
+            completion(.failure(FirebaseError.notConfigured))
+            return
+        }
+        
+        auth.sendPasswordReset(withEmail: email) { error in
             if let error = error {
                 completion(.failure(error))
             } else {
@@ -84,6 +65,8 @@ extension FirebaseManager: AuthServiceProtocol {
             }
         }
     }
+    
+    // Note: signIn and signUp are already implemented in FirebaseAuthenticationService extension
 }
 
 // MARK: - AuthError
@@ -125,7 +108,7 @@ extension Error {
     var asAuthError: AuthError {
         let nsError = self as NSError
         
-        guard let errorCode = AuthErrorCode.Code(rawValue: nsError.code) else {
+        guard let errorCode = AuthErrorCode(rawValue: nsError.code) else {
             return .unknown
         }
         

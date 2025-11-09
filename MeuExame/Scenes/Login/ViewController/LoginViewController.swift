@@ -7,10 +7,16 @@ final class LoginViewController: UIViewController {
     // MARK: - Properties
     
     /// Referência ao Presenter (será injetado pelo Router)
-    var presenter: LoginPresenterProtocol?
+    var presenter: PresenterProtocol?
     
     /// View customizada de Login
     private let loginView = LoginView()
+    
+    // MARK: - Private Helpers
+    
+    private var loginPresenter: LoginPresenterProtocol? {
+        return presenter as? LoginPresenterProtocol
+    }
     
     // MARK: - Lifecycle
     
@@ -54,17 +60,17 @@ final class LoginViewController: UIViewController {
         let credentials = loginView.getCredentials()
         
         // Repassar para o Presenter (que fará a validação e business logic)
-        presenter?.didTapLogin(email: credentials.email, password: credentials.password)
+        loginPresenter?.didTapLogin(email: credentials.email, password: credentials.password)
     }
     
     @objc private func registerButtonTapped() {
         // Repassar para o Presenter
-        presenter?.didTapRegister()
+        loginPresenter?.didTapRegister()
     }
     
     @objc private func forgotPasswordButtonTapped() {
         // Repassar para o Presenter
-        presenter?.didTapForgotPassword()
+        loginPresenter?.didTapForgotPassword()
     }
 }
 
