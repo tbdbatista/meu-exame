@@ -15,6 +15,9 @@
 		A10000003 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000002 /* SceneDelegate.swift */; };
 		A10000005 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A10000004 /* Assets.xcassets */; };
 		A10000006 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A10000007 /* LaunchScreen.storyboard */; };
+		A10000060 /* FirebaseConfigurable.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000059 /* FirebaseConfigurable.swift */; };
+		A10000061 /* FirebaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000058 /* FirebaseManager.swift */; };
+		A10000062 /* DependencyContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000057 /* DependencyContainer.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -23,6 +26,9 @@
 		A10000004 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A10000007 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		A10000008 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A10000057 /* DependencyContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DependencyContainer.swift; sourceTree = "<group>"; };
+		A10000058 /* FirebaseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseManager.swift; sourceTree = "<group>"; };
+		A10000059 /* FirebaseConfigurable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseConfigurable.swift; sourceTree = "<group>"; };
 		A10000100 /* MeuExame.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MeuExame.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -99,6 +105,7 @@
 		A10000031 /* Helpers */ = {
 			isa = PBXGroup;
 			children = (
+				A10000057 /* DependencyContainer.swift */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -106,6 +113,7 @@
 		A10000032 /* Protocols */ = {
 			isa = PBXGroup;
 			children = (
+				A10000059 /* FirebaseConfigurable.swift */,
 			);
 			path = Protocols;
 			sourceTree = "<group>";
@@ -129,6 +137,7 @@
 		A10000041 /* Firebase */ = {
 			isa = PBXGroup;
 			children = (
+				A10000058 /* FirebaseManager.swift */,
 			);
 			path = Firebase;
 			sourceTree = "<group>";
@@ -165,6 +174,12 @@
 			dependencies = (
 			);
 			name = MeuExame;
+			packageProductDependencies = (
+				1828ACDF2EC0E9A700BE763E /* FirebaseAnalytics */,
+				1828ACE12EC0E9A700BE763E /* FirebaseAuth */,
+				1828ACE32EC0E9A700BE763E /* FirebaseFirestore */,
+				1828ACE52EC0E9A700BE763E /* FirebaseStorage */,
+			);
 			productName = MeuExame;
 			productReference = A10000100 /* MeuExame.app */;
 			productType = "com.apple.product-type.application";
@@ -224,6 +239,9 @@
 			files = (
 				A10000001 /* AppDelegate.swift in Sources */,
 				A10000003 /* SceneDelegate.swift in Sources */,
+				A10000060 /* FirebaseConfigurable.swift in Sources */,
+				A10000061 /* FirebaseManager.swift in Sources */,
+				A10000062 /* DependencyContainer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -440,7 +458,7 @@
 			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 12.5.0;
+				minimumVersion = 11.0.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
