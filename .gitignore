@@ -91,3 +91,11 @@ iOSInjectionProject/
 
 # Firebase
 GoogleService-Info.plist
+
+# Tuist
+.tuist
+*.xcodeproj
+*.xcworkspace
+Derived/
+.build/
+.package.resolved

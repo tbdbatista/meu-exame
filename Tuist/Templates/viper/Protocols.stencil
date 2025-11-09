@@ -1,0 +1,54 @@
+//
+//  {{ name }}Protocols.swift
+//  MeuExame
+//
+//  Created by Tuist on {% now "short" %}.
+//  Copyright © {% now "utcYear" %} MeuExame. All rights reserved.
+//
+
+import UIKit
+
+// MARK: - View Protocol
+
+protocol {{ name }}ViewProtocol: AnyObject {
+    var presenter: {{ name }}PresenterProtocol? { get set }
+    
+    func showLoading()
+    func hideLoading()
+    func showError(message: String)
+}
+
+// MARK: - Presenter Protocol
+
+protocol {{ name }}PresenterProtocol: AnyObject {
+    var view: {{ name }}ViewProtocol? { get set }
+    var interactor: {{ name }}InteractorInputProtocol? { get set }
+    var router: {{ name }}RouterProtocol? { get set }
+    
+    func viewDidLoad()
+}
+
+// MARK: - Interactor Input Protocol
+
+protocol {{ name }}InteractorInputProtocol: AnyObject {
+    var output: {{ name }}InteractorOutputProtocol? { get set }
+    
+    func fetchData()
+}
+
+// MARK: - Interactor Output Protocol
+
+protocol {{ name }}InteractorOutputProtocol: AnyObject {
+    func didFetchData()
+    func didFailToFetchData(with error: Error)
+}
+
+// MARK: - Router Protocol
+
+protocol {{ name }}RouterProtocol: AnyObject {
+    static func createModule() -> UIViewController
+    
+    func navigateToNextScreen()
+    func dismiss()
+}
+

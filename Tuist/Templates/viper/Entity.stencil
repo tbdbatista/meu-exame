@@ -1,0 +1,30 @@
+//
+//  {{ name }}Entity.swift
+//  MeuExame
+//
+//  Created by Tuist on {% now "short" %}.
+//  Copyright © {% now "utcYear" %} MeuExame. All rights reserved.
+//
+
+import Foundation
+
+struct {{ name }}Entity: Codable {
+    
+    // MARK: - Properties
+    
+    // Add entity properties here
+    // Example:
+    // let id: String
+    // let title: String
+    // let description: String
+    
+    // MARK: - Coding Keys
+    
+    enum CodingKeys: String, CodingKey {
+        // Map JSON keys to properties
+        // case id
+        // case title
+        // case description
+    }
+}
+
