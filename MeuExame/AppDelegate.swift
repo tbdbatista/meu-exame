@@ -11,9 +11,33 @@ import UIKit
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
+    // MARK: - Properties
+    
+    /// Firebase configuration manager - can be injected for testing
+    var firebaseManager: FirebaseConfigurable = FirebaseManager.shared
+    
+    // MARK: - UIApplicationDelegate
+    
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
+        // Configure Firebase
+        configureFirebase()
+        
+        // Additional app configuration can be added here
+        
         return true
+    }
+    
+    // MARK: - Private Methods
+    
+    /// Configures Firebase using dependency injection
+    private func configureFirebase() {
+        firebaseManager.configure()
+        
+        if firebaseManager.isConfigured() {
+            print("✅ Firebase initialized successfully in AppDelegate")
+        } else {
+            print("⚠️ Firebase configuration incomplete. Add GoogleService-Info.plist to proceed.")
+        }
     }
 
     // MARK: UISceneSession Lifecycle
