@@ -23,7 +23,10 @@ let project = Project(
             bundleId: "com.meuexame.app",
             infoPlist: .file(path: "MeuExame/Info.plist"),
             sources: ["MeuExame/**/*.swift"],
-            resources: ["MeuExame/Resources/**"],
+            resources: [
+                "MeuExame/Resources/**",
+                "MeuExame/GoogleService-Info.plist"
+            ],
             dependencies: [
                 .package(product: "FirebaseAuth", type: .runtime),
                 .package(product: "FirebaseFirestore", type: .runtime),
