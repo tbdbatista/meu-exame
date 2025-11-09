@@ -38,6 +38,7 @@ extension LoginRouter: LoginRouterProtocol {
         
         // Interactor
         interactor.presenter = presenter
+        interactor.output = presenter // Set output for callbacks
         
         // Router
         router.viewController = view

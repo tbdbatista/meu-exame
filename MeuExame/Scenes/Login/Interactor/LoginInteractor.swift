@@ -6,7 +6,11 @@ final class LoginInteractor {
     
     // MARK: - VIPER Properties
     
-    weak var presenter: LoginInteractorOutputProtocol?
+    /// Reference to presenter (required by InteractorProtocol)
+    weak var presenter: PresenterProtocol?
+    
+    /// Specific reference to LoginInteractorOutputProtocol for callbacks
+    weak var output: LoginInteractorOutputProtocol?
     
     // MARK: - Dependencies
     
@@ -36,12 +40,12 @@ extension LoginInteractor: LoginInteractorProtocol {
             case .success(let userId):
                 print("✅ LoginInteractor: Login successful - User ID: \(userId)")
                 // Notify presenter of success
-                self.presenter?.loginDidSucceed(userId: userId)
+                self.output?.loginDidSucceed(userId: userId)
                 
             case .failure(let error):
                 print("❌ LoginInteractor: Login failed - Error: \(error.localizedDescription)")
                 // Notify presenter of failure
-                self.presenter?.loginDidFail(error: error)
+                self.output?.loginDidFail(error: error)
             }
         }
     }
