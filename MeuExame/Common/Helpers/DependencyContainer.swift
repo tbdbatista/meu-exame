@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import UIKit
 
 /// Dependency Injection Container for the app
 /// Provides centralized management of dependencies following VIPER architecture
