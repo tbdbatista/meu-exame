@@ -141,13 +141,56 @@ appDelegate.firebaseManager = MockFirebaseManager()
 - ⏳ Configure networking layer
 - ⏳ Add common extensions and utilities
 
+## Git Workflow
+
+Este projeto segue um workflow Git estruturado com branches. Consulte [GIT_WORKFLOW.md](GIT_WORKFLOW.md) para detalhes completos.
+
+### Branches Principais
+
+- **`main`** - Código em produção (estável)
+- **`develop`** - Base para desenvolvimento
+
+### Trabalhando com Features
+
+```bash
+# 1. Criar branch da feature a partir de develop
+git checkout develop
+git pull origin develop
+git checkout -b feature/minha-feature
+
+# 2. Desenvolver e commitar
+git add .
+git commit -m "feat: descrição da mudança"
+
+# 3. Push e criar Pull Request
+git push origin feature/minha-feature
+```
+
+### Convenção de Commits
+
+Seguimos [Conventional Commits](https://www.conventionalcommits.org/):
+
+- `feat:` - Nova funcionalidade
+- `fix:` - Correção de bug
+- `docs:` - Documentação
+- `style:` - Formatação
+- `refactor:` - Refatoração
+- `test:` - Testes
+- `chore:` - Configurações
+
+**Exemplo:** `git commit -m "feat(login): implementa validação de email"`
+
 ## Contributing
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+1. Fork o repositório
+2. Clone seu fork
+3. Crie uma branch de feature a partir de `develop`
+4. Faça suas mudanças seguindo as convenções
+5. Commit com mensagens descritivas
+6. Push para seu fork
+7. Abra um Pull Request para `develop`
+
+Consulte [GIT_WORKFLOW.md](GIT_WORKFLOW.md) para guia completo!
 
 ---
 
