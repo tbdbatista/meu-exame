@@ -1,0 +1,40 @@
+//
+//  {{ name }}Interactor.swift
+//  MeuExame
+//
+//  Created by Tuist on {% now "short" %}.
+//  Copyright © {% now "utcYear" %} MeuExame. All rights reserved.
+//
+
+import Foundation
+
+final class {{ name }}Interactor {
+    
+    // MARK: - Properties
+    
+    weak var output: {{ name }}InteractorOutputProtocol?
+    
+    // MARK: - Dependencies
+    
+    // Inject Firebase services or other dependencies here
+    // Example:
+    // private let firebaseAuth: FirebaseAuthenticationService
+    
+    // MARK: - Initialization
+    
+    init() {
+        // Initialize with dependencies
+    }
+}
+
+// MARK: - {{ name }}InteractorInputProtocol
+
+extension {{ name }}Interactor: {{ name }}InteractorInputProtocol {
+    
+    func fetchData() {
+        // Fetch data from services
+        // Call output?.didFetchData() when done
+        output?.didFetchData()
+    }
+}
+
