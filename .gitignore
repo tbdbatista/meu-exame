@@ -99,3 +99,4 @@ GoogleService-Info.plist
 Derived/
 .build/
 .package.resolved
+build_output.log

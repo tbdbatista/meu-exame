@@ -12,6 +12,12 @@ final class LoginViewController: UIViewController {
     /// View customizada de Login
     private let loginView = LoginView()
     
+    // MARK: - Private Helpers
+    
+    private var loginPresenter: LoginPresenterProtocol? {
+        return presenter as? LoginPresenterProtocol
+    }
+    
     // MARK: - Lifecycle
     
     override func loadView() {
@@ -50,69 +56,41 @@ final class LoginViewController: UIViewController {
     // MARK: - Actions
     
     @objc private func loginButtonTapped() {
-        // Validar campos
-        let validation = loginView.validateFields()
-        
-        guard validation.isValid else {
-            showError(title: "Erro de Validação", message: validation.errorMessage ?? "Campos inválidos")
-            return
-        }
-        
         // Obter credenciais
         let credentials = loginView.getCredentials()
         
-        // Repassar para o Presenter
-        // TODO: Implementar método no Presenter
-        // presenter?.login(email: credentials.email, password: credentials.password)
-        
-        // TEMPORÁRIO: Feedback visual
-        loginView.showLoading()
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
-            self?.loginView.hideLoading()
-            self?.showSuccess(
-                title: "Login",
-                message: "Email: \(credentials.email)\nSenha: \(String(repeating: "*", count: credentials.password.count))"
-            )
-        }
+        // Repassar para o Presenter (que fará a validação e business logic)
+        loginPresenter?.didTapLogin(email: credentials.email, password: credentials.password)
     }
     
     @objc private func registerButtonTapped() {
         // Repassar para o Presenter
-        // TODO: Implementar método no Presenter
-        // presenter?.navigateToRegister()
-        
-        // TEMPORÁRIO: Feedback visual
-        showSuccess(title: "Cadastro", message: "Navegação para cadastro será implementada")
+        loginPresenter?.didTapRegister()
     }
     
     @objc private func forgotPasswordButtonTapped() {
         // Repassar para o Presenter
-        // TODO: Implementar método no Presenter
-        // presenter?.navigateToForgotPassword()
-        
-        // TEMPORÁRIO: Feedback visual
-        showAlert(
-            title: "Esqueci minha senha",
-            message: "Recuperação de senha será implementada",
-            actions: [
-                UIAlertAction(title: "OK", style: .default)
-            ]
-        )
-    }
-    
-    // MARK: - Helper Methods
-    
-    private func showAlert(title: String, message: String, actions: [UIAlertAction]) {
-        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        actions.forEach { alert.addAction($0) }
-        present(alert, animated: true)
+        loginPresenter?.didTapForgotPassword()
     }
 }
 
-// MARK: - ViewProtocol
+// MARK: - LoginViewProtocol
 
-extension LoginViewController: ViewProtocol {
+extension LoginViewController: LoginViewProtocol {
+    func getCredentials() -> (email: String, password: String) {
+        return loginView.getCredentials()
+    }
+    
+    func validateFields() -> (isValid: Bool, errorMessage: String?) {
+        return loginView.validateFields()
+    }
+    
+    func clearFields() {
+        loginView.clearFields()
+    }
+    
+    // MARK: - ViewProtocol (inherited from LoginViewProtocol)
+    
     func showLoading() {
         loginView.showLoading()
     }

@@ -22,9 +22,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // Configure window programmatically
         window = UIWindow(windowScene: windowScene)
         
-        // Configurar LoginViewController como tela inicial
-        let loginViewController = LoginViewController()
-        let navigationController = UINavigationController(rootViewController: loginViewController)
+        // Configurar Login module usando VIPER Router
+        let loginModule = LoginRouter.createModule()
+        let navigationController = UINavigationController(rootViewController: loginModule)
         
         window?.rootViewController = navigationController
         window?.makeKeyAndVisible()
