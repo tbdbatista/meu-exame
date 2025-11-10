@@ -22,11 +22,11 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // Configure window programmatically
         window = UIWindow(windowScene: windowScene)
         
-        // TODO: Replace with Login screen when implemented
-        let initialViewController = UIViewController()
-        initialViewController.view.backgroundColor = .systemBackground
+        // Configurar Login module usando VIPER Router
+        let loginModule = LoginRouter.createModule()
+        let navigationController = UINavigationController(rootViewController: loginModule)
         
-        window?.rootViewController = initialViewController
+        window?.rootViewController = navigationController
         window?.makeKeyAndVisible()
     }
 

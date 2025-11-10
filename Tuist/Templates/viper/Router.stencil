@@ -1,0 +1,50 @@
+//
+//  {{ name }}Router.swift
+//  MeuExame
+//
+//  Created by Tuist on {% now "short" %}.
+//  Copyright © {% now "utcYear" %} MeuExame. All rights reserved.
+//
+
+import UIKit
+
+final class {{ name }}Router {
+    
+    // MARK: - Properties
+    
+    weak var viewController: UIViewController?
+}
+
+// MARK: - {{ name }}RouterProtocol
+
+extension {{ name }}Router: {{ name }}RouterProtocol {
+    
+    static func createModule() -> UIViewController {
+        let viewController = {{ name }}ViewController()
+        let presenter = {{ name }}Presenter()
+        let interactor = {{ name }}Interactor()
+        let router = {{ name }}Router()
+        
+        // VIPER Wiring
+        viewController.presenter = presenter
+        presenter.view = viewController
+        presenter.interactor = interactor
+        presenter.router = router
+        interactor.output = presenter
+        router.viewController = viewController
+        
+        return viewController
+    }
+    
+    func navigateToNextScreen() {
+        // Implement navigation
+        // Example:
+        // let nextModule = NextRouter.createModule()
+        // viewController?.navigationController?.pushViewController(nextModule, animated: true)
+    }
+    
+    func dismiss() {
+        viewController?.dismiss(animated: true)
+    }
+}
+

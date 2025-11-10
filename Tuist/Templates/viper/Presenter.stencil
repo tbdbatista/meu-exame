@@ -1,0 +1,48 @@
+//
+//  {{ name }}Presenter.swift
+//  MeuExame
+//
+//  Created by Tuist on {% now "short" %}.
+//  Copyright © {% now "utcYear" %} MeuExame. All rights reserved.
+//
+
+import Foundation
+
+final class {{ name }}Presenter {
+    
+    // MARK: - VIPER Properties
+    
+    weak var view: {{ name }}ViewProtocol?
+    var interactor: {{ name }}InteractorInputProtocol?
+    var router: {{ name }}RouterProtocol?
+    
+    // MARK: - Properties
+    
+    // Add any additional properties here
+}
+
+// MARK: - {{ name }}PresenterProtocol
+
+extension {{ name }}Presenter: {{ name }}PresenterProtocol {
+    
+    func viewDidLoad() {
+        view?.showLoading()
+        interactor?.fetchData()
+    }
+}
+
+// MARK: - {{ name }}InteractorOutputProtocol
+
+extension {{ name }}Presenter: {{ name }}InteractorOutputProtocol {
+    
+    func didFetchData() {
+        view?.hideLoading()
+        // Process data and update view
+    }
+    
+    func didFailToFetchData(with error: Error) {
+        view?.hideLoading()
+        view?.showError(message: error.localizedDescription)
+    }
+}
+
