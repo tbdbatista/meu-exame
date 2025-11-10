@@ -70,19 +70,21 @@ extension LoginRouter: LoginRouterProtocol {
     }
     
     func navigateToMainScreen() {
-        print("🧭 LoginRouter: Navigating to Main Screen (Exames List)")
+        print("🧭 LoginRouter: Navigating to Main Screen (TabBar)")
         
-        // TODO: Implementar navegação para ExamesList quando o módulo existir
-        // Por enquanto, mostra um alert de sucesso
-        showSuccessAlert(
-            title: "Login Realizado!",
-            message: "Você será redirecionado para a tela principal em breve."
-        ) { [weak self] in
-            // Após OK, por enquanto apenas mostra mensagem
-            print("✅ User authenticated - Main screen would be shown here")
-            
-            // TEMPORÁRIO: Mostra placeholder da tela principal
-            self?.showMainScreenPlaceholder()
+        // Create main tab bar controller
+        let tabBarController = MainTabBarController.create()
+        
+        // Replace the entire navigation stack
+        if let navigationController = viewController?.navigationController {
+            navigationController.setViewControllers([tabBarController], animated: true)
+        } else if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                  let window = windowScene.windows.first {
+            window.rootViewController = tabBarController
+            UIView.transition(with: window,
+                            duration: 0.3,
+                            options: .transitionCrossDissolve,
+                            animations: nil)
         }
     }
     

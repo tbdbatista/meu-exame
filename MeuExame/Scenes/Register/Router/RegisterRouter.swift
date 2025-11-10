@@ -91,49 +91,21 @@ extension RegisterRouter: RegisterRouterProtocol {
     }
     
     func navigateToMainScreen() {
-        print("🧭 RegisterRouter: Navigating to Main Screen (ExamesList)")
+        print("🧭 RegisterRouter: Navigating to Main Screen (TabBar)")
         
-        // Placeholder for Main Screen
-        let mainViewController = UIViewController()
-        mainViewController.view.backgroundColor = .systemGreen
-        mainViewController.title = "Exames"
+        // Create main tab bar controller
+        let tabBarController = MainTabBarController.create()
         
-        // Add a logout button for testing
-        let logoutButton = UIBarButtonItem(title: "Sair", style: .plain, target: self, action: #selector(logoutTapped))
-        mainViewController.navigationItem.rightBarButtonItem = logoutButton
-        
-        // Present the main screen
+        // Replace the entire navigation stack
         if let navigationController = viewController?.navigationController {
-            // Replace the entire navigation stack with the main screen
-            navigationController.setViewControllers([mainViewController], animated: true)
-        } else {
-            viewController?.present(UINavigationController(rootViewController: mainViewController), animated: true)
-        }
-    }
-    
-    @objc private func logoutTapped() {
-        print("🧭 RegisterRouter: Logout button tapped. Navigating back to Login.")
-        do {
-            try FirebaseManager.shared.signOut()
-            
-            // After logout, navigate back to the login screen
-            let loginModule = LoginRouter.createModule()
-            let navigationController = UINavigationController(rootViewController: loginModule)
-            
-            // Replace the root view controller with the login screen
-            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-               let window = windowScene.windows.first {
-                window.rootViewController = navigationController
-                UIView.transition(with: window,
-                                duration: 0.3,
-                                options: .transitionCrossDissolve,
-                                animations: nil)
-            }
-        } catch {
-            // Show error using UIAlertController
-            let alert = UIAlertController(title: "Erro ao Sair", message: error.localizedDescription, preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "OK", style: .default))
-            viewController?.present(alert, animated: true)
+            navigationController.setViewControllers([tabBarController], animated: true)
+        } else if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                  let window = windowScene.windows.first {
+            window.rootViewController = tabBarController
+            UIView.transition(with: window,
+                            duration: 0.3,
+                            options: .transitionCrossDissolve,
+                            animations: nil)
         }
     }
 }
