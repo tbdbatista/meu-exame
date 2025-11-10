@@ -49,14 +49,13 @@ extension LoginRouter: LoginRouterProtocol {
     }
     
     func navigateToRegister() {
-        print("🧭 LoginRouter: Navigating to Register")
+        print("🧭 LoginRouter: Navigating to Register screen")
         
-        // TODO: Implementar navegação para Register quando o módulo existir
-        // Por enquanto, mostra um alert
-        showPlaceholderAlert(
-            title: "Cadastro",
-            message: "A tela de cadastro será implementada no próximo módulo."
-        )
+        // Create Register module
+        let registerModule = RegisterRouter.createModule()
+        
+        // Push to navigation stack
+        viewController?.navigationController?.pushViewController(registerModule, animated: true)
     }
     
     func navigateToForgotPassword() {
