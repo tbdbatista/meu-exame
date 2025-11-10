@@ -130,7 +130,10 @@ extension RegisterRouter: RegisterRouterProtocol {
                                 animations: nil)
             }
         } catch {
-            viewController?.showError(title: "Erro ao Sair", message: error.localizedDescription)
+            // Show error using UIAlertController
+            let alert = UIAlertController(title: "Erro ao Sair", message: error.localizedDescription, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            viewController?.present(alert, animated: true)
         }
     }
 }
