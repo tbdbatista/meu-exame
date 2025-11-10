@@ -89,7 +89,7 @@ jobs:
             -workspace MeuExame.xcworkspace \
             -scheme MeuExame \
             -sdk iphonesimulator \
-            -destination 'platform=iOS Simulator,name=iPhone 16 Pro,OS=18.0' \
+            -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
             -configuration Debug \
             clean build \
             CODE_SIGN_IDENTITY="" \
@@ -110,7 +110,7 @@ jobs:
               -workspace MeuExame.xcworkspace \
               -scheme MeuExame \
               -sdk iphonesimulator \
-              -destination 'platform=iOS Simulator,name=iPhone 16 Pro,OS=18.0' \
+              -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
               CODE_SIGN_IDENTITY="" \
               CODE_SIGNING_REQUIRED=NO \
               | xcpretty --color --test
