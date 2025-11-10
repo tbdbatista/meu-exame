@@ -33,9 +33,10 @@ final class MainTabBarController: UITabBarController {
         // 1. Home Tab
         let homeVC = HomeRouter.createModule()
         
-        // 2. Exam List Tab (placeholder for now)
-        let examListVC = createExamListPlaceholder()
-        examListVC.tabBarItem = UITabBarItem(
+        // 2. Exam List Tab
+        let examListVC = ExamesListRouter.createModule()
+        let examListNavController = UINavigationController(rootViewController: examListVC)
+        examListNavController.tabBarItem = UITabBarItem(
             title: "Exames",
             image: UIImage(systemName: "list.bullet.clipboard"),
             selectedImage: UIImage(systemName: "list.bullet.clipboard.fill")
@@ -50,32 +51,10 @@ final class MainTabBarController: UITabBarController {
         )
         
         // Set view controllers
-        viewControllers = [homeVC, examListVC, addExamVC]
+        viewControllers = [homeVC, examListNavController, addExamVC]
     }
     
     // MARK: - Placeholder ViewControllers
-    
-    private func createExamListPlaceholder() -> UIViewController {
-        let vc = UIViewController()
-        vc.view.backgroundColor = .systemBackground
-        
-        let label = UILabel()
-        label.text = "📋 Lista de Exames\n\n(Será implementada em breve)"
-        label.numberOfLines = 0
-        label.textAlignment = .center
-        label.font = .systemFont(ofSize: 18, weight: .medium)
-        label.textColor = .secondaryLabel
-        label.translatesAutoresizingMaskIntoConstraints = false
-        
-        vc.view.addSubview(label)
-        
-        NSLayoutConstraint.activate([
-            label.centerXAnchor.constraint(equalTo: vc.view.centerXAnchor),
-            label.centerYAnchor.constraint(equalTo: vc.view.centerYAnchor),
-        ])
-        
-        return vc
-    }
     
     private func createAddExamPlaceholder() -> UIViewController {
         let vc = UIViewController()
