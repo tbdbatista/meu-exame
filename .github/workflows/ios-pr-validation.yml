@@ -18,7 +18,7 @@ permissions:
 jobs:
   validate-build:
     name: Build & Validate
-    runs-on: macos-14 # macOS Sonoma com Xcode 15+
+    runs-on: macos-latest # macOS Sequoia (15.x) com Xcode 16.x
     
     steps:
       # 1. Checkout do código
@@ -30,8 +30,9 @@ jobs:
       # 2. Setup Xcode
       - name: 🔧 Select Xcode Version
         run: |
-          sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer
+          # Usar a versão padrão do runner (Xcode 16.x no macos-latest)
           xcodebuild -version
+          echo "Xcode path: $(xcode-select -p)"
       
       # 3. Cache do Tuist
       - name: 💾 Cache Tuist
