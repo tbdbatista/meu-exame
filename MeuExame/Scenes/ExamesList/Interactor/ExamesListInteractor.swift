@@ -11,18 +11,12 @@ final class ExamesListInteractor {
     // MARK: - Private Properties
     
     weak var output: ExamesListInteractorOutputProtocol?
-    
-    // TODO: Injetar ExameServiceProtocol quando for implementado
-    // private let exameService: ExameServiceProtocol
+    private let exameService: ExamesServiceProtocol
     
     // MARK: - Initializer
     
-    // init(exameService: ExameServiceProtocol) {
-    //     self.exameService = exameService
-    // }
-    
-    init() {
-        // Temporary init without dependencies
+    init(exameService: ExamesServiceProtocol) {
+        self.exameService = exameService
     }
 }
 
@@ -36,66 +30,47 @@ extension ExamesListInteractor: InteractorProtocol {
 
 extension ExamesListInteractor: ExamesListInteractorProtocol {
     func fetchExames() {
-        print("🔄 ExamesListInteractor: Buscando exames...")
+        print("🔄 ExamesListInteractor: Buscando exames do Firestore...")
         
-        // TODO: Buscar exames do Firestore
-        // exameService.fetchExames { [weak self] result in
-        //     switch result {
-        //     case .success(let exames):
-        //         self?.output?.examesDidLoad(exames)
-        //     case .failure(let error):
-        //         self?.output?.examesDidFail(error: error)
-        //     }
-        // }
-        
-        // Mock data por enquanto
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
-            let mockExames = self?.generateMockExames() ?? []
-            self?.output?.examesDidLoad(mockExames)
+        exameService.fetch { [weak self] result in
+            switch result {
+            case .success(let exames):
+                print("✅ ExamesListInteractor: \(exames.count) exames carregados")
+                self?.output?.examesDidLoad(exames)
+            case .failure(let error):
+                print("❌ ExamesListInteractor: Erro ao buscar exames - \(error.localizedDescription)")
+                self?.output?.examesDidFail(error: error)
+            }
         }
     }
     
     func searchExames(with query: String) {
         print("🔍 ExamesListInteractor: Buscando com query: \(query)")
         
-        // TODO: Buscar exames do Firestore com filtro
-        // exameService.searchExames(query: query) { [weak self] result in
-        //     switch result {
-        //     case .success(let exames):
-        //         self?.output?.searchResultsDidLoad(exames)
-        //     case .failure(let error):
-        //         self?.output?.examesDidFail(error: error)
-        //     }
-        // }
-        
-        // Mock search por enquanto
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-            let allExames = self?.generateMockExames() ?? []
-            let filtered = allExames.filter { exame in
-                exame.nome.localizedCaseInsensitiveContains(query) ||
-                exame.localRealizado.localizedCaseInsensitiveContains(query) ||
-                exame.medicoSolicitante.localizedCaseInsensitiveContains(query)
+        exameService.search(query: query) { [weak self] result in
+            switch result {
+            case .success(let exames):
+                print("✅ ExamesListInteractor: \(exames.count) resultados encontrados")
+                self?.output?.searchResultsDidLoad(exames)
+            case .failure(let error):
+                print("❌ ExamesListInteractor: Erro na busca - \(error.localizedDescription)")
+                self?.output?.examesDidFail(error: error)
             }
-            self?.output?.searchResultsDidLoad(filtered)
         }
     }
     
     func deleteExame(_ exam: ExameModel) {
         print("🗑️ ExamesListInteractor: Deletando exame: \(exam.nome)")
         
-        // TODO: Deletar exame do Firestore
-        // exameService.deleteExame(exam.id) { [weak self] result in
-        //     switch result {
-        //     case .success:
-        //         self?.output?.exameDidDelete(exam)
-        //     case .failure(let error):
-        //         self?.output?.exameDeleteDidFail(error: error)
-        //     }
-        // }
-        
-        // Mock delete por enquanto
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-            self?.output?.exameDidDelete(exam)
+        exameService.delete(id: exam.id) { [weak self] result in
+            switch result {
+            case .success:
+                print("✅ ExamesListInteractor: Exame deletado com sucesso")
+                self?.output?.exameDidDelete(exam)
+            case .failure(let error):
+                print("❌ ExamesListInteractor: Erro ao deletar - \(error.localizedDescription)")
+                self?.output?.exameDeleteDidFail(error: error)
+            }
         }
     }
     
