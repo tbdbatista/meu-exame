@@ -48,7 +48,7 @@ jobs:
       - name: 📦 Install Tuist
         run: |
           if ! command -v tuist &> /dev/null; then
-            curl -Ls https://install.tuist.io | bash
+            brew install tuist/tuist/tuist
           fi
           tuist version
       
