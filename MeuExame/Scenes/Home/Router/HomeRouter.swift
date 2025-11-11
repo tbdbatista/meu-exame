@@ -15,10 +15,13 @@ final class HomeRouter {
     static func createModule() -> UIViewController {
         print("🏗️ HomeRouter: Creating Home module")
         
+        // Get services
+        let exameService = DependencyContainer.shared.makeExamesService()
+        
         // Create VIPER components
         let view = HomeViewController()
         let presenter = HomePresenter()
-        let interactor = HomeInteractor()
+        let interactor = HomeInteractor(exameService: exameService)
         let router = HomeRouter()
         
         // Connect VIPER components (Dependency Injection)

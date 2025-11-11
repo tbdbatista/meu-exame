@@ -16,12 +16,13 @@ final class HomeInteractor {
     // MARK: - Dependencies
     
     private let authService: AuthServiceProtocol
-    // TODO: Add FirestoreService for exam data
+    private let exameService: ExamesServiceProtocol
     
     // MARK: - Initializer
     
-    init(authService: AuthServiceProtocol = FirebaseManager.shared) {
+    init(authService: AuthServiceProtocol = FirebaseManager.shared, exameService: ExamesServiceProtocol) {
         self.authService = authService
+        self.exameService = exameService
         print("🔧 HomeInteractor: Initialized")
     }
 }
@@ -32,13 +33,54 @@ extension HomeInteractor: HomeInteractorProtocol {
     func fetchExamSummary() {
         print("🔄 HomeInteractor: Fetching exam summary")
         
-        // TODO: Implement actual Firestore fetch
-        // For now, use mock data
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-            // Check if user has exams (mock)
-            let summary = ExamSummary.empty // or .mock for testing
-            self?.output?.examSummaryDidLoad(summary)
+        // Fetch exams from Firestore
+        exameService.fetch { [weak self] result in
+            switch result {
+            case .success(let exames):
+                print("✅ HomeInteractor: Fetched \(exames.count) exams")
+                
+                // Calculate summary statistics
+                let summary = self?.calculateSummary(from: exames) ?? ExamSummary.empty
+                self?.output?.examSummaryDidLoad(summary)
+                
+            case .failure(let error):
+                print("❌ HomeInteractor: Failed to fetch exams - \(error.localizedDescription)")
+                
+                // If error, show empty summary (user might have no exams)
+                // Only report error if it's not a "no exams" situation
+                if case ExameServiceError.notFound = error {
+                    // No exams found - this is valid, show empty state
+                    self?.output?.examSummaryDidLoad(ExamSummary.empty)
+                } else {
+                    // Real error
+                    self?.output?.examSummaryDidFail(error: error)
+                }
+            }
         }
+    }
+    
+    // MARK: - Private Helpers
+    
+    /// Calculates exam summary statistics from a list of exams
+    private func calculateSummary(from exames: [ExameModel]) -> ExamSummary {
+        let totalExams = exames.count
+        
+        // Calculate recent exams (last 30 days)
+        let thirtyDaysAgo = Calendar.current.date(byAdding: .day, value: -30, to: Date()) ?? Date()
+        let recentExams = exames.filter { $0.dataCadastro >= thirtyDaysAgo }
+        
+        // Calculate "pending" exams (for now, just count exams without files)
+        let pendingExams = exames.filter { !$0.temArquivo }
+        
+        // Get last exam date
+        let lastExamDate = exames.map { $0.dataCadastro }.max()
+        
+        return ExamSummary(
+            totalExams: totalExams,
+            recentExamsCount: recentExams.count,
+            pendingExamsCount: pendingExams.count,
+            lastExamDate: lastExamDate
+        )
     }
     
     func fetchUserProfile() {

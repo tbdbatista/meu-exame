@@ -4,6 +4,12 @@ import UIKit
 /// Implementa 100% View Code com AutoLayout programático.
 final class HomeView: UIView {
     
+    // MARK: - Callbacks
+    
+    var onProfileTapped: (() -> Void)?
+    var onAddExamTapped: (() -> Void)?
+    var onAboutTapped: (() -> Void)?
+    
     // MARK: - UI Components
     
     /// Scroll view para conteúdo
@@ -156,6 +162,60 @@ final class HomeView: UIView {
         return label
     }()
     
+    // MARK: - Empty State View
+    
+    private let emptyStateView: UIView = {
+        let view = UIView()
+        view.backgroundColor = .systemBackground
+        view.layer.cornerRadius = 16
+        view.layer.borderWidth = 2
+        view.layer.borderColor = UIColor.systemGray5.cgColor
+        view.isHidden = true
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
+    private let emptyStateIconImageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.image = UIImage(systemName: "doc.text.magnifyingglass")
+        imageView.tintColor = .systemGray3
+        imageView.contentMode = .scaleAspectFit
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        return imageView
+    }()
+    
+    private let emptyStateTitleLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Nenhum Exame Cadastrado"
+        label.font = .systemFont(ofSize: 20, weight: .semibold)
+        label.textColor = .label
+        label.textAlignment = .center
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
+    private let emptyStateMessageLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Comece cadastrando seu primeiro exame médico.\nToque no botão abaixo para começar!"
+        label.font = .systemFont(ofSize: 15, weight: .regular)
+        label.textColor = .secondaryLabel
+        label.textAlignment = .center
+        label.numberOfLines = 0
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
+    private let emptyStateCTAButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("📋 Cadastrar Primeiro Exame", for: .normal)
+        button.titleLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
+        button.backgroundColor = .systemBlue
+        button.setTitleColor(.white, for: .normal)
+        button.layer.cornerRadius = 12
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+    
     // MARK: - Initializers
     
     override init(frame: CGRect) {
@@ -198,6 +258,13 @@ final class HomeView: UIView {
         // Add last exam info
         contentView.addSubview(lastExamLabel)
         contentView.addSubview(lastExamDateLabel)
+        
+        // Add empty state view
+        contentView.addSubview(emptyStateView)
+        emptyStateView.addSubview(emptyStateIconImageView)
+        emptyStateView.addSubview(emptyStateTitleLabel)
+        emptyStateView.addSubview(emptyStateMessageLabel)
+        emptyStateView.addSubview(emptyStateCTAButton)
     }
     
     private func setupConstraints() {
@@ -266,6 +333,35 @@ final class HomeView: UIView {
             lastExamDateLabel.topAnchor.constraint(equalTo: lastExamLabel.bottomAnchor, constant: 4),
             lastExamDateLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             lastExamDateLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -40),
+            
+            // Empty State View
+            emptyStateView.topAnchor.constraint(equalTo: summaryStackView.bottomAnchor, constant: 40),
+            emptyStateView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            emptyStateView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            emptyStateView.heightAnchor.constraint(greaterThanOrEqualToConstant: 300),
+            
+            // Empty State Icon
+            emptyStateIconImageView.topAnchor.constraint(equalTo: emptyStateView.topAnchor, constant: 40),
+            emptyStateIconImageView.centerXAnchor.constraint(equalTo: emptyStateView.centerXAnchor),
+            emptyStateIconImageView.widthAnchor.constraint(equalToConstant: 80),
+            emptyStateIconImageView.heightAnchor.constraint(equalToConstant: 80),
+            
+            // Empty State Title
+            emptyStateTitleLabel.topAnchor.constraint(equalTo: emptyStateIconImageView.bottomAnchor, constant: 20),
+            emptyStateTitleLabel.leadingAnchor.constraint(equalTo: emptyStateView.leadingAnchor, constant: 20),
+            emptyStateTitleLabel.trailingAnchor.constraint(equalTo: emptyStateView.trailingAnchor, constant: -20),
+            
+            // Empty State Message
+            emptyStateMessageLabel.topAnchor.constraint(equalTo: emptyStateTitleLabel.bottomAnchor, constant: 12),
+            emptyStateMessageLabel.leadingAnchor.constraint(equalTo: emptyStateView.leadingAnchor, constant: 20),
+            emptyStateMessageLabel.trailingAnchor.constraint(equalTo: emptyStateView.trailingAnchor, constant: -20),
+            
+            // Empty State CTA Button
+            emptyStateCTAButton.topAnchor.constraint(equalTo: emptyStateMessageLabel.bottomAnchor, constant: 24),
+            emptyStateCTAButton.centerXAnchor.constraint(equalTo: emptyStateView.centerXAnchor),
+            emptyStateCTAButton.widthAnchor.constraint(equalToConstant: 260),
+            emptyStateCTAButton.heightAnchor.constraint(equalToConstant: 50),
+            emptyStateCTAButton.bottomAnchor.constraint(equalTo: emptyStateView.bottomAnchor, constant: -40),
         ])
     }
     
@@ -273,10 +369,17 @@ final class HomeView: UIView {
         // Profile image tap gesture
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(profileImageTapped))
         profileImageView.addGestureRecognizer(tapGesture)
+        
+        // Empty state CTA button action
+        emptyStateCTAButton.addTarget(self, action: #selector(emptyStateCTATapped), for: .touchUpInside)
     }
     
     @objc private func profileImageTapped() {
         // Will be handled by ViewController
+    }
+    
+    @objc private func emptyStateCTATapped() {
+        onAddExamTapped?()
     }
     
     // MARK: - Public Methods
@@ -287,6 +390,19 @@ final class HomeView: UIView {
         recentExamsCard.setValue("\(summary.recentExamsCount)")
         pendingExamsCard.setValue("\(summary.pendingExamsCount)")
         lastExamDateLabel.text = summary.formattedLastExamDate
+        
+        // Show/hide empty state based on exam count
+        let hasExams = summary.totalExams > 0
+        emptyStateView.isHidden = hasExams
+        
+        // Hide action buttons and last exam section if no exams
+        actionsLabel.isHidden = !hasExams
+        addExamButton.isHidden = !hasExams
+        aboutButton.isHidden = !hasExams
+        lastExamLabel.isHidden = !hasExams
+        lastExamDateLabel.isHidden = !hasExams
+        
+        print("📊 HomeView: Empty state \(hasExams ? "hidden" : "visible") - Total exams: \(summary.totalExams)")
     }
     
     /// Updates the user profile display
