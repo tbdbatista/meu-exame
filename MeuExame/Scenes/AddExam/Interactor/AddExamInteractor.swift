@@ -1,4 +1,5 @@
 import Foundation
+import FirebaseAuth
 
 /// AddExamInteractor é o Interactor da tela de cadastro de exames.
 /// Segue o padrão VIPER, gerenciando a lógica de negócios e comunicação com serviços.
@@ -12,14 +13,13 @@ final class AddExamInteractor {
     
     weak var output: AddExamInteractorOutputProtocol?
     private let exameService: ExamesServiceProtocol
-    
-    // TODO: Inject StorageService when implemented
-    // private let storageService: StorageServiceProtocol
+    private let storageService: StorageServiceProtocol
     
     // MARK: - Initializer
     
-    init(exameService: ExamesServiceProtocol) {
+    init(exameService: ExamesServiceProtocol, storageService: StorageServiceProtocol) {
         self.exameService = exameService
+        self.storageService = storageService
     }
 }
 
@@ -37,10 +37,8 @@ extension AddExamInteractor: AddExamInteractorProtocol {
         
         // Check if there's a file to upload
         if let fileData = fileData, let fileName = fileName {
-            print("📤 AddExamInteractor: Arquivo anexado, upload necessário")
-            // TODO: Upload file to Firebase Storage first
-            // For now, create exam without file URL
-            createExamInFirestore(exame)
+            print("📤 AddExamInteractor: Arquivo anexado, iniciando upload")
+            uploadFileAndCreateExam(exame: exame, fileData: fileData, fileName: fileName)
         } else {
             print("📝 AddExamInteractor: Sem arquivo anexado")
             createExamInFirestore(exame)
@@ -49,11 +47,55 @@ extension AddExamInteractor: AddExamInteractorProtocol {
     
     // MARK: - Private Methods
     
+    private func uploadFileAndCreateExam(exame: ExameModel, fileData: Data, fileName: String) {
+        // Get current user ID for storage path
+        guard let userId = Auth.auth().currentUser?.uid else {
+            print("❌ AddExamInteractor: Usuário não autenticado")
+            output?.examCreateDidFail(error: NSError(
+                domain: "AddExamInteractor",
+                code: -1,
+                userInfo: [NSLocalizedDescriptionKey: "Usuário não autenticado"]
+            ))
+            return
+        }
+        
+        // Create storage path: exames/userId/examId_fileName
+        let storagePath = "exames/\(userId)/\(exame.id)_\(fileName)"
+        print("📤 AddExamInteractor: Uploading para: \(storagePath)")
+        
+        // Upload file to Firebase Storage
+        storageService.upload(data: fileData, to: storagePath) { [weak self] result in
+            switch result {
+            case .success(let downloadURL):
+                print("✅ AddExamInteractor: Upload concluído: \(downloadURL)")
+                
+                // Create updated exam model with file URL
+                let updatedExame = ExameModel(
+                    id: exame.id,
+                    nome: exame.nome,
+                    localRealizado: exame.localRealizado,
+                    medicoSolicitante: exame.medicoSolicitante,
+                    motivoQueixa: exame.motivoQueixa,
+                    dataCadastro: exame.dataCadastro,
+                    urlArquivo: downloadURL
+                )
+                
+                // Now create exam in Firestore with file URL
+                self?.createExamInFirestore(updatedExame)
+                
+            case .failure(let error):
+                print("❌ AddExamInteractor: Erro no upload - \(error.localizedDescription)")
+                self?.output?.examCreateDidFail(error: error)
+            }
+        }
+    }
+    
     private func createExamInFirestore(_ exame: ExameModel) {
         exameService.create(exame: exame) { [weak self] result in
             switch result {
             case .success(let createdExame):
                 print("✅ AddExamInteractor: Exame criado no Firestore")
+                print("📄 AddExamInteractor: URL do arquivo: \(createdExame.urlArquivo ?? "nenhum")")
                 self?.output?.examDidCreate(createdExame)
                 
             case .failure(let error):
@@ -62,24 +104,5 @@ extension AddExamInteractor: AddExamInteractorProtocol {
             }
         }
     }
-    
-    // TODO: Implement file upload when StorageService is ready
-    /*
-    private func uploadFile(_ data: Data, fileName: String, completion: @escaping (Result<String, Error>) -> Void) {
-        print("📤 AddExamInteractor: Uploading file: \(fileName)")
-        
-        storageService.uploadFile(data: data, fileName: fileName, path: "exames") { [weak self] result in
-            switch result {
-            case .success(let url):
-                print("✅ AddExamInteractor: File uploaded: \(url)")
-                completion(.success(url))
-                
-            case .failure(let error):
-                print("❌ AddExamInteractor: Upload failed - \(error.localizedDescription)")
-                completion(.failure(error))
-            }
-        }
-    }
-    */
 }
 
