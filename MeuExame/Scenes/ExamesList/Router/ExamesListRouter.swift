@@ -21,25 +21,8 @@ extension ExamesListRouter: ExamesListRouterProtocol {
     func navigateToExamDetail(_ exam: ExameModel) {
         print("🧭 ExamesListRouter: Navegar para detalhes do exame: \(exam.nome)")
         
-        // TODO: Criar módulo ExamDetail quando for implementado
-        // let detailViewController = ExamDetailRouter.createModule(exam: exam)
-        // viewController?.navigationController?.pushViewController(detailViewController, animated: true)
-        
-        // Placeholder por enquanto
-        let alert = UIAlertController(
-            title: "Detalhes do Exame",
-            message: """
-            Nome: \(exam.nome)
-            Local: \(exam.localRealizado)
-            Médico: \(exam.medicoSolicitante)
-            Data: \(exam.dataFormatada)
-            
-            A tela de detalhes será implementada em breve.
-            """,
-            preferredStyle: .alert
-        )
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-        viewController?.present(alert, animated: true)
+        let detailViewController = ExameDetailRouter.createModule(with: exam)
+        viewController?.navigationController?.pushViewController(detailViewController, animated: true)
     }
     
     func navigateToAddExam() {
