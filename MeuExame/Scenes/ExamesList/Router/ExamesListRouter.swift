@@ -82,10 +82,13 @@ extension ExamesListRouter {
     static func createModule() -> UIViewController {
         print("🏗️ ExamesListRouter: Criando módulo ExamesList")
         
+        // Create service
+        let exameService = FirestoreExamesService()
+        
         // Create components
         let view = ExamesListViewController()
         let presenter = ExamesListPresenter()
-        let interactor = ExamesListInteractor()
+        let interactor = ExamesListInteractor(exameService: exameService)
         let router = ExamesListRouter()
         
         // Connect VIPER components

@@ -35,6 +35,14 @@ final class DependencyContainer {
         self.firebaseManager = firebaseManager
     }
     
+    // MARK: - Services
+    
+    /// Creates an ExamesService instance
+    /// - Returns: Configured ExamesServiceProtocol implementation
+    func makeExamesService() -> ExamesServiceProtocol {
+        return FirestoreExamesService()
+    }
+    
     // MARK: - Factory Methods
     
     /// Creates a Login VIPER module with all dependencies
@@ -56,6 +64,30 @@ final class DependencyContainer {
         // return view
         
         return UIViewController()
+    }
+    
+    /// Creates an ExamesList VIPER module with all dependencies
+    /// - Returns: Configured ExamesList view controller
+    func makeExamesListModule() -> UIViewController {
+        let exameService = makeExamesService()
+        
+        let view = ExamesListViewController()
+        let presenter = ExamesListPresenter()
+        let interactor = ExamesListInteractor(exameService: exameService)
+        let router = ExamesListRouter()
+        
+        view.presenter = presenter
+        
+        presenter.view = view
+        presenter.interactor = interactor
+        presenter.router = router
+        
+        interactor.presenter = presenter
+        interactor.output = presenter
+        
+        router.viewController = view
+        
+        return view
     }
 }
 
