@@ -47,13 +47,14 @@ extension AddExamRouter {
     static func createModule() -> UIViewController {
         print("🏗️ AddExamRouter: Criando módulo AddExam")
         
-        // Get service from DependencyContainer
+        // Get services
         let exameService = DependencyContainer.shared.makeExamesService()
+        let storageService = FirebaseManager.shared // implements StorageServiceProtocol
         
         // Create components
         let view = AddExamViewController()
         let presenter = AddExamPresenter()
-        let interactor = AddExamInteractor(exameService: exameService)
+        let interactor = AddExamInteractor(exameService: exameService, storageService: storageService)
         let router = AddExamRouter()
         
         // Connect VIPER components
