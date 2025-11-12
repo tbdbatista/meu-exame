@@ -440,7 +440,7 @@ final class ExameDetailView: UIView {
         motivoTextView.text = exame.motivoQueixa
         datePicker.date = exame.dataCadastro
         
-        updateFileAttachment(hasFile: exame.temArquivo, fileName: exame.urlArquivo)
+        updateFileAttachment(hasFile: exame.temArquivo, fileName: exame.nomeArquivoExibicao)
     }
     
     func showEditMode() {
@@ -489,10 +489,10 @@ final class ExameDetailView: UIView {
             viewFileButton.isHidden = false
             noFileLabel.isHidden = true
             
-            if let fileName = fileName {
-                fileNameLabel.text = fileName
+            if let fileName = fileName, !fileName.isEmpty {
+                fileNameLabel.text = "📄 \(fileName)"
             } else {
-                fileNameLabel.text = "Arquivo anexado"
+                fileNameLabel.text = "📄 Arquivo.pdf"
             }
         } else {
             fileIconImageView.isHidden = true

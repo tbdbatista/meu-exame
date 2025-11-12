@@ -91,7 +91,8 @@ extension ExameDetailPresenter: ExameDetailPresenterProtocol {
             medicoSolicitante: medico,
             motivoQueixa: motivo,
             dataCadastro: data,
-            urlArquivo: currentExame.urlArquivo
+            urlArquivo: currentExame.urlArquivo,
+            nomeArquivo: currentExame.nomeArquivo // Preserve file name
         )
         
         print("💾 ExameDetailPresenter: Atualizando exame: \(updatedExame.nome)")
