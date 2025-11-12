@@ -59,9 +59,21 @@ extension AddExamInteractor: AddExamInteractorProtocol {
             return
         }
         
-        // Create storage path: exames/userId/examId_fileName
-        let storagePath = "exames/\(userId)/\(exame.id)_\(fileName)"
+        // Extract file extension from original file name
+        let fileExtension = (fileName as NSString).pathExtension
+        
+        // Create friendly file name: ExameName.extension
+        let friendlyFileName: String
+        if !fileExtension.isEmpty {
+            friendlyFileName = "\(exame.nome).\(fileExtension)"
+        } else {
+            friendlyFileName = "\(exame.nome).pdf" // Default to .pdf if no extension
+        }
+        
+        // Create storage path: exames/userId/examId_friendlyFileName
+        let storagePath = "exames/\(userId)/\(exame.id)_\(friendlyFileName)"
         print("📤 AddExamInteractor: Uploading para: \(storagePath)")
+        print("📄 AddExamInteractor: Nome amigável: \(friendlyFileName)")
         
         // Upload file to Firebase Storage
         storageService.upload(data: fileData, to: storagePath) { [weak self] result in
@@ -69,7 +81,7 @@ extension AddExamInteractor: AddExamInteractorProtocol {
             case .success(let downloadURL):
                 print("✅ AddExamInteractor: Upload concluído: \(downloadURL)")
                 
-                // Create updated exam model with file URL and original file name
+                // Create updated exam model with file URL and friendly file name
                 let updatedExame = ExameModel(
                     id: exame.id,
                     nome: exame.nome,
@@ -78,7 +90,7 @@ extension AddExamInteractor: AddExamInteractorProtocol {
                     motivoQueixa: exame.motivoQueixa,
                     dataCadastro: exame.dataCadastro,
                     urlArquivo: downloadURL,
-                    nomeArquivo: fileName // Save original file name
+                    nomeArquivo: friendlyFileName // Use exam name + extension
                 )
                 
                 // Now create exam in Firestore with file URL
