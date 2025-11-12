@@ -48,99 +48,97 @@ extension ExameDetailInteractor: ExameDetailInteractorProtocol {
         }
     }
     
-    func updateExam(_ exame: ExameModel, fileData: Data?, fileName: String?, shouldDeleteOldFile: Bool) {
+    func updateExam(_ exame: ExameModel, newFiles: [(Data, String)]) {
         print("💾 ExameDetailInteractor: Atualizando exame: \(exame.nome)")
-        print("📎 Dados de arquivo: \(fileData != nil ? "Sim" : "Não"), Nome: \(fileName ?? "N/A"), Deletar antigo: \(shouldDeleteOldFile)")
+        print("📎 Novos arquivos: \(newFiles.count)")
         
-        // If file data provided, upload it first
-        if let fileData = fileData, let fileName = fileName {
-            uploadFileAndUpdateExam(exame: exame, fileData: fileData, fileName: fileName, shouldDeleteOldFile: shouldDeleteOldFile)
-        } else if shouldDeleteOldFile {
-            // File was removed, delete from storage and update exam without file
-            deleteOldFileAndUpdateExam(exame: exame)
-        } else {
-            // No file changes, just update exam data
+        // If no new files, just update exam data
+        guard !newFiles.isEmpty else {
             updateExamInFirestore(exame)
+            return
         }
+        
+        // Upload new files
+        uploadMultipleFilesAndUpdateExam(exame: exame, newFiles: newFiles)
     }
     
-    private func uploadFileAndUpdateExam(exame: ExameModel, fileData: Data, fileName: String, shouldDeleteOldFile: Bool) {
+    private func uploadMultipleFilesAndUpdateExam(exame: ExameModel, newFiles: [(Data, String)]) {
         guard let userId = Auth.auth().currentUser?.uid else {
             let error = NSError(domain: "ExameDetail", code: -1, userInfo: [NSLocalizedDescriptionKey: "Usuário não autenticado"])
             output?.examUpdateDidFail(error: error)
             return
         }
         
-        // Extract file extension
-        let fileExtension = (fileName as NSString).pathExtension
+        var uploadedFiles: [AttachedFile] = []
+        let group = DispatchGroup()
+        var uploadError: Error?
         
-        // Create friendly file name: ExameName.extension
-        let friendlyFileName: String
-        if !fileExtension.isEmpty {
-            friendlyFileName = "\(exame.nome).\(fileExtension)"
-        } else {
-            friendlyFileName = "\(exame.nome).pdf" // Default to PDF if no extension
-        }
-        
-        // Storage path: exames/userId/examId_friendlyFileName
-        let storagePath = "exames/\(userId)/\(exame.id)_\(friendlyFileName)"
-        
-        print("📤 Uploading file to: \(storagePath)")
-        
-        // Delete old file first if it exists
-        if shouldDeleteOldFile {
-            deleteOldFileBeforeUpload(examId: exame.id) { [weak self] in
-                self?.performFileUpload(fileData: fileData, storagePath: storagePath, exame: exame, friendlyFileName: friendlyFileName)
+        for (fileData, fileName) in newFiles {
+            group.enter()
+            
+            // Extract file extension
+            let fileExtension = (fileName as NSString).pathExtension
+            
+            // Create friendly file name with counter if multiple files
+            let fileIndex = newFiles.firstIndex(where: { $0.1 == fileName }) ?? 0
+            let friendlyFileName: String
+            if newFiles.count > 1 {
+                if !fileExtension.isEmpty {
+                    friendlyFileName = "\(exame.nome)-\(fileIndex + 1).\(fileExtension)"
+                } else {
+                    friendlyFileName = "\(exame.nome)-\(fileIndex + 1).pdf"
+                }
+            } else {
+                if !fileExtension.isEmpty {
+                    friendlyFileName = "\(exame.nome).\(fileExtension)"
+                } else {
+                    friendlyFileName = "\(exame.nome).pdf"
+                }
             }
-        } else {
-            performFileUpload(fileData: fileData, storagePath: storagePath, exame: exame, friendlyFileName: friendlyFileName)
+            
+            // Storage path: exames/userId/examId_friendlyFileName_timestamp
+            let timestamp = Date().timeIntervalSince1970
+            let storagePath = "exames/\(userId)/\(exame.id)_\(friendlyFileName)_\(Int(timestamp))"
+            
+            print("📤 Uploading file \(fileIndex + 1)/\(newFiles.count): \(storagePath)")
+            
+            storageService.upload(data: fileData, to: storagePath) { result in
+                switch result {
+                case .success(let downloadURL):
+                    print("✅ File uploaded: \(friendlyFileName)")
+                    uploadedFiles.append(AttachedFile(url: downloadURL, name: friendlyFileName))
+                    
+                case .failure(let error):
+                    print("❌ File upload failed: \(error.localizedDescription)")
+                    if uploadError == nil {
+                        uploadError = error
+                    }
+                }
+                group.leave()
+            }
         }
-    }
-    
-    private func performFileUpload(fileData: Data, storagePath: String, exame: ExameModel, friendlyFileName: String) {
-        storageService.upload(data: fileData, to: storagePath) { [weak self] result in
-            switch result {
-            case .success(let downloadURL):
-                print("✅ File uploaded successfully: \(downloadURL)")
-                
-                // Create updated exam with new file URL and name
-                let updatedExame = ExameModel(
-                    id: exame.id,
-                    nome: exame.nome,
-                    localRealizado: exame.localRealizado,
-                    medicoSolicitante: exame.medicoSolicitante,
-                    motivoQueixa: exame.motivoQueixa,
-                    dataCadastro: exame.dataCadastro,
-                    urlArquivo: downloadURL,
-                    nomeArquivo: friendlyFileName
-                )
-                
-                self?.updateExamInFirestore(updatedExame)
-                
-            case .failure(let error):
-                print("❌ File upload failed: \(error.localizedDescription)")
+        
+        group.notify(queue: .main) { [weak self] in
+            if let error = uploadError {
+                print("❌ Some files failed to upload")
                 self?.output?.examUpdateDidFail(error: error)
+                return
             }
+            
+            // Create updated exam with existing + new files
+            let allFiles = exame.arquivosAnexados + uploadedFiles
+            let updatedExame = ExameModel(
+                id: exame.id,
+                nome: exame.nome,
+                localRealizado: exame.localRealizado,
+                medicoSolicitante: exame.medicoSolicitante,
+                motivoQueixa: exame.motivoQueixa,
+                dataCadastro: exame.dataCadastro,
+                arquivosAnexados: allFiles
+            )
+            
+            self?.updateExamInFirestore(updatedExame)
         }
-    }
-    
-    private func deleteOldFileBeforeUpload(examId: String, completion: @escaping () -> Void) {
-        guard let userId = Auth.auth().currentUser?.uid else {
-            completion()
-            return
-        }
-        
-        // We don't have the exact file name, so we'll just continue with upload
-        // The old file will remain in storage but won't be referenced
-        // TODO: Implement proper file tracking or cleanup
-        print("⚠️ Old file cleanup not fully implemented, continuing with upload")
-        completion()
-    }
-    
-    private func deleteOldFileAndUpdateExam(exame: ExameModel) {
-        // File was removed, just update exam without file URL
-        print("🗑️ Removing file reference from exam")
-        updateExamInFirestore(exame) // Exam already has nil urlArquivo and nomeArquivo
     }
     
     private func updateExamInFirestore(_ exame: ExameModel) {

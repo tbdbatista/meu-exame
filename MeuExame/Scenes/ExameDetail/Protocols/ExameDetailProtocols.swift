@@ -14,12 +14,6 @@ protocol ExameDetailViewProtocol: ViewProtocol {
     
     /// Shows the view mode UI
     func showViewMode()
-    
-    /// Updates the file attachment UI
-    /// - Parameters:
-    ///   - hasFile: Whether the exam has a file
-    ///   - fileName: Name of the file if exists
-    func updateFileAttachment(hasFile: Bool, fileName: String?)
 }
 
 /// Protocol for the ExameDetail Presenter.
@@ -38,16 +32,19 @@ protocol ExameDetailPresenterProtocol: PresenterProtocol {
     ///   - medico: Updated doctor
     ///   - motivo: Updated reason
     ///   - data: Updated date
-    ///   - fileData: New file data if user attached/changed file
-    ///   - fileName: New file name if user attached/changed file
-    ///   - hasFileChanged: Whether the user changed/removed the file
-    func didTapSave(nome: String?, local: String?, medico: String?, motivo: String?, data: Date, fileData: Data?, fileName: String?, hasFileChanged: Bool)
+    ///   - newFiles: Array of new files to attach (data and name tuples)
+    func didTapSave(nome: String?, local: String?, medico: String?, motivo: String?, data: Date, newFiles: [(Data, String)])
     
     /// Called when the user taps cancel (in edit mode)
     func didTapCancel()
     
     /// Called when the user taps to view/download file
-    func didTapViewFile()
+    /// - Parameter url: URL of the file to view
+    func didTapViewFile(url: String)
+    
+    /// Called when the user taps to remove a file
+    /// - Parameter index: Index of the file to remove
+    func didTapRemoveFile(at index: Int)
     
     /// Called when the user taps share
     func didTapShare()
@@ -62,11 +59,9 @@ protocol ExameDetailInteractorProtocol: InteractorProtocol {
     
     /// Updates an existing exam
     /// - Parameters:
-    ///   - exame: Updated exam model
-    ///   - fileData: New file data if user attached/changed file
-    ///   - fileName: New file name if user attached/changed file
-    ///   - shouldDeleteOldFile: Whether to delete the old file from storage
-    func updateExam(_ exame: ExameModel, fileData: Data?, fileName: String?, shouldDeleteOldFile: Bool)
+    ///   - exame: Updated exam model (with existing files)
+    ///   - newFiles: Array of new files to attach (data and name tuples)
+    func updateExam(_ exame: ExameModel, newFiles: [(Data, String)])
     
     /// Deletes an exam
     /// - Parameter examId: ID of the exam to delete

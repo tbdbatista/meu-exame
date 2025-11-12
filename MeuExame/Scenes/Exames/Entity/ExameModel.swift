@@ -1,5 +1,20 @@
 import Foundation
 
+// MARK: - AttachedFile
+
+/// Represents a file attached to an exam
+struct AttachedFile: Codable, Identifiable, Equatable {
+    let id: String
+    let url: String
+    let name: String
+    
+    init(id: String = UUID().uuidString, url: String, name: String) {
+        self.id = id
+        self.url = url
+        self.name = name
+    }
+}
+
 // MARK: - ExameModel
 
 /// Represents a medical exam in the system.
@@ -26,34 +41,35 @@ struct ExameModel: Codable, Identifiable, Equatable {
     /// Date when the exam was registered in the system
     let dataCadastro: Date
     
-    /// Optional URL to the exam file/document stored in Firebase Storage
-    /// Example: "https://firebasestorage.googleapis.com/..."
+    /// Array of attached files (supports multiple files)
+    let arquivosAnexados: [AttachedFile]
+    
+    /// DEPRECATED: Legacy single file URL (kept for backwards compatibility)
     let urlArquivo: String?
     
-    /// Optional original file name
-    /// Example: "Hemograma_2024.pdf"
+    /// DEPRECATED: Legacy single file name (kept for backwards compatibility)
     let nomeArquivo: String?
     
     // MARK: - Computed Properties
     
-    /// Returns a friendly file name for display
-    /// Extracts from URL if nomeArquivo is nil
+    /// Returns a friendly file name for display (legacy - uses first file or deprecated fields)
     var nomeArquivoExibicao: String? {
-        // If we have the original name, use it
+        // New: Use first file from array
+        if !arquivosAnexados.isEmpty {
+            return arquivosAnexados[0].name
+        }
+        
+        // Legacy: If we have the original name, use it
         if let nome = nomeArquivo, !nome.isEmpty {
             return nome
         }
         
-        // Otherwise, try to extract from URL
+        // Legacy: Otherwise, try to extract from URL
         if let urlString = urlArquivo,
            let url = URL(string: urlString) {
-            // Get last path component from storage path
-            // Example: "exames/userId/examId_arquivo.pdf" -> "examId_arquivo.pdf"
             let lastPath = url.lastPathComponent
             
-            // Try to remove URL encoding
             if let decoded = lastPath.removingPercentEncoding {
-                // If it has examId_, remove it: "examId_arquivo.pdf" -> "arquivo.pdf"
                 if let underscoreIndex = decoded.firstIndex(of: "_") {
                     let fileName = String(decoded[decoded.index(after: underscoreIndex)...])
                     return fileName
@@ -75,9 +91,9 @@ struct ExameModel: Codable, Identifiable, Equatable {
         return formatter.string(from: dataCadastro)
     }
     
-    /// Returns true if the exam has an associated file
+    /// Returns true if the exam has an associated file (checks both new and legacy fields)
     var temArquivo: Bool {
-        return urlArquivo != nil && !(urlArquivo?.isEmpty ?? true)
+        return !arquivosAnexados.isEmpty || (urlArquivo != nil && !(urlArquivo?.isEmpty ?? true))
     }
     
     /// Returns a short summary of the exam for preview
@@ -95,7 +111,9 @@ struct ExameModel: Codable, Identifiable, Equatable {
     ///   - medicoSolicitante: Requesting doctor's name
     ///   - motivoQueixa: Reason for the exam
     ///   - dataCadastro: Registration date (defaults to current date)
-    ///   - urlArquivo: Optional URL to exam file
+    ///   - arquivosAnexados: Array of attached files (supports multiple files)
+    ///   - urlArquivo: DEPRECATED - Optional URL to exam file (for backwards compatibility)
+    ///   - nomeArquivo: DEPRECATED - Optional file name (for backwards compatibility)
     init(
         id: String = UUID().uuidString,
         nome: String,
@@ -103,6 +121,7 @@ struct ExameModel: Codable, Identifiable, Equatable {
         medicoSolicitante: String,
         motivoQueixa: String,
         dataCadastro: Date = Date(),
+        arquivosAnexados: [AttachedFile] = [],
         urlArquivo: String? = nil,
         nomeArquivo: String? = nil
     ) {
@@ -114,6 +133,14 @@ struct ExameModel: Codable, Identifiable, Equatable {
         self.dataCadastro = dataCadastro
         self.urlArquivo = urlArquivo
         self.nomeArquivo = nomeArquivo
+        
+        // Migration: If old fields are provided but new array is empty, migrate them
+        if arquivosAnexados.isEmpty, let url = urlArquivo, !url.isEmpty {
+            let name = nomeArquivo ?? "Arquivo.pdf"
+            self.arquivosAnexados = [AttachedFile(url: url, name: name)]
+        } else {
+            self.arquivosAnexados = arquivosAnexados
+        }
     }
     
     // MARK: - Coding Keys
@@ -126,8 +153,37 @@ struct ExameModel: Codable, Identifiable, Equatable {
         case medicoSolicitante = "medico_solicitante"
         case motivoQueixa = "motivo_queixa"
         case dataCadastro = "data_cadastro"
+        case arquivosAnexados = "arquivos_anexados"
         case urlArquivo = "url_arquivo"
         case nomeArquivo = "nome_arquivo"
+    }
+    
+    // MARK: - Custom Decoding
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        id = try container.decode(String.self, forKey: .id)
+        nome = try container.decode(String.self, forKey: .nome)
+        localRealizado = try container.decode(String.self, forKey: .localRealizado)
+        medicoSolicitante = try container.decode(String.self, forKey: .medicoSolicitante)
+        motivoQueixa = try container.decode(String.self, forKey: .motivoQueixa)
+        dataCadastro = try container.decode(Date.self, forKey: .dataCadastro)
+        
+        // Decode legacy fields
+        urlArquivo = try? container.decode(String.self, forKey: .urlArquivo)
+        nomeArquivo = try? container.decode(String.self, forKey: .nomeArquivo)
+        
+        // Try to decode new format first
+        if let files = try? container.decode([AttachedFile].self, forKey: .arquivosAnexados), !files.isEmpty {
+            arquivosAnexados = files
+        } else if let url = urlArquivo, !url.isEmpty {
+            // Migration: If no new format but has legacy data, migrate it
+            let name = nomeArquivo ?? "Arquivo.pdf"
+            arquivosAnexados = [AttachedFile(url: url, name: name)]
+        } else {
+            arquivosAnexados = []
+        }
     }
 }
 

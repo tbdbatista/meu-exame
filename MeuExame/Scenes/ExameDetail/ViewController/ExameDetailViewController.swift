@@ -59,16 +59,14 @@ final class ExameDetailViewController: UIViewController {
     }
     
     private func setupActions() {
-        exameDetailView.onSaveTapped = { [weak self] nome, local, medico, motivo, data, fileData, fileName, hasFileChanged in
+        exameDetailView.onSaveTapped = { [weak self] nome, local, medico, motivo, data, newFiles in
             self?.exameDetailPresenter?.didTapSave(
                 nome: nome,
                 local: local,
                 medico: medico,
                 motivo: motivo,
                 data: data,
-                fileData: fileData,
-                fileName: fileName,
-                hasFileChanged: hasFileChanged
+                newFiles: newFiles
             )
         }
         
@@ -76,23 +74,23 @@ final class ExameDetailViewController: UIViewController {
             self?.exameDetailPresenter?.didTapCancel()
         }
         
-        exameDetailView.onViewFileTapped = { [weak self] in
-            self?.exameDetailPresenter?.didTapViewFile()
+        exameDetailView.onViewFileTapped = { [weak self] url in
+            self?.exameDetailPresenter?.didTapViewFile(url: url)
         }
         
         exameDetailView.onAttachFileTapped = { [weak self] in
             self?.presentDocumentPicker()
         }
         
-        exameDetailView.onRemoveFileTapped = { [weak self] in
-            print("🗑️ File removed from ExameDetailView")
+        exameDetailView.onRemoveFileTapped = { [weak self] index in
+            self?.exameDetailPresenter?.didTapRemoveFile(at: index)
         }
     }
     
     private func presentDocumentPicker() {
         let documentPicker = UIDocumentPickerViewController(forOpeningContentTypes: [UTType.pdf, UTType.image, UTType.text])
         documentPicker.delegate = self
-        documentPicker.allowsMultipleSelection = false
+        documentPicker.allowsMultipleSelection = true  // Changed to support multiple files
         present(documentPicker, animated: true)
     }
     
@@ -132,10 +130,6 @@ extension ExameDetailViewController: ExameDetailViewProtocol {
         // Restore navigation bar
         setupNavigationBar()
         title = "Detalhes do Exame"
-    }
-    
-    func updateFileAttachment(hasFile: Bool, fileName: String?) {
-        exameDetailView.updateFileAttachment(hasFile: hasFile, fileName: fileName)
     }
     
     // MARK: - ViewProtocol
@@ -178,25 +172,27 @@ extension ExameDetailViewController: ExameDetailViewProtocol {
 
 extension ExameDetailViewController: UIDocumentPickerDelegate {
     func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
-        guard let url = urls.first, url.startAccessingSecurityScopedResource() else {
-            print("❌ Failed to access security scoped resource")
-            return
-        }
-        
-        defer {
-            url.stopAccessingSecurityScopedResource()
-        }
-        
-        do {
-            let fileData = try Data(contentsOf: url)
-            let fileName = url.lastPathComponent
+        for url in urls {
+            guard url.startAccessingSecurityScopedResource() else {
+                print("❌ Failed to access security scoped resource for: \(url.lastPathComponent)")
+                continue
+            }
             
-            print("📎 File selected: \(fileName) (\(fileData.count) bytes)")
+            defer {
+                url.stopAccessingSecurityScopedResource()
+            }
             
-            exameDetailView.setAttachedFile(data: fileData, fileName: fileName)
-        } catch {
-            print("❌ Error reading file: \(error.localizedDescription)")
-            showError(title: "Erro", message: "Não foi possível ler o arquivo selecionado.")
+            do {
+                let fileData = try Data(contentsOf: url)
+                let fileName = url.lastPathComponent
+                
+                print("📎 File selected: \(fileName) (\(fileData.count) bytes)")
+                
+                exameDetailView.addAttachedFile(data: fileData, name: fileName)
+            } catch {
+                print("❌ Error reading file \(url.lastPathComponent): \(error.localizedDescription)")
+                showError(title: "Erro", message: "Não foi possível ler o arquivo: \(url.lastPathComponent)")
+            }
         }
     }
     
