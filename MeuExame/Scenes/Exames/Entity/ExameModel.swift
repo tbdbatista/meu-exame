@@ -27,10 +27,44 @@ struct ExameModel: Codable, Identifiable, Equatable {
     let dataCadastro: Date
     
     /// Optional URL to the exam file/document stored in Firebase Storage
-    /// Example: "exames/user123/hemograma_2024.pdf"
+    /// Example: "https://firebasestorage.googleapis.com/..."
     let urlArquivo: String?
     
+    /// Optional original file name
+    /// Example: "Hemograma_2024.pdf"
+    let nomeArquivo: String?
+    
     // MARK: - Computed Properties
+    
+    /// Returns a friendly file name for display
+    /// Extracts from URL if nomeArquivo is nil
+    var nomeArquivoExibicao: String? {
+        // If we have the original name, use it
+        if let nome = nomeArquivo, !nome.isEmpty {
+            return nome
+        }
+        
+        // Otherwise, try to extract from URL
+        if let urlString = urlArquivo,
+           let url = URL(string: urlString) {
+            // Get last path component from storage path
+            // Example: "exames/userId/examId_arquivo.pdf" -> "examId_arquivo.pdf"
+            let lastPath = url.lastPathComponent
+            
+            // Try to remove URL encoding
+            if let decoded = lastPath.removingPercentEncoding {
+                // If it has examId_, remove it: "examId_arquivo.pdf" -> "arquivo.pdf"
+                if let underscoreIndex = decoded.firstIndex(of: "_") {
+                    let fileName = String(decoded[decoded.index(after: underscoreIndex)...])
+                    return fileName
+                }
+                return decoded
+            }
+            return lastPath
+        }
+        
+        return nil
+    }
     
     /// Returns a formatted date string for display purposes
     var dataFormatada: String {
@@ -69,7 +103,8 @@ struct ExameModel: Codable, Identifiable, Equatable {
         medicoSolicitante: String,
         motivoQueixa: String,
         dataCadastro: Date = Date(),
-        urlArquivo: String? = nil
+        urlArquivo: String? = nil,
+        nomeArquivo: String? = nil
     ) {
         self.id = id
         self.nome = nome
@@ -78,6 +113,7 @@ struct ExameModel: Codable, Identifiable, Equatable {
         self.motivoQueixa = motivoQueixa
         self.dataCadastro = dataCadastro
         self.urlArquivo = urlArquivo
+        self.nomeArquivo = nomeArquivo
     }
     
     // MARK: - Coding Keys
@@ -91,6 +127,7 @@ struct ExameModel: Codable, Identifiable, Equatable {
         case motivoQueixa = "motivo_queixa"
         case dataCadastro = "data_cadastro"
         case urlArquivo = "url_arquivo"
+        case nomeArquivo = "nome_arquivo"
     }
 }
 

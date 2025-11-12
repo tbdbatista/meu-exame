@@ -69,7 +69,7 @@ extension AddExamInteractor: AddExamInteractorProtocol {
             case .success(let downloadURL):
                 print("✅ AddExamInteractor: Upload concluído: \(downloadURL)")
                 
-                // Create updated exam model with file URL
+                // Create updated exam model with file URL and original file name
                 let updatedExame = ExameModel(
                     id: exame.id,
                     nome: exame.nome,
@@ -77,7 +77,8 @@ extension AddExamInteractor: AddExamInteractorProtocol {
                     medicoSolicitante: exame.medicoSolicitante,
                     motivoQueixa: exame.motivoQueixa,
                     dataCadastro: exame.dataCadastro,
-                    urlArquivo: downloadURL
+                    urlArquivo: downloadURL,
+                    nomeArquivo: fileName // Save original file name
                 )
                 
                 // Now create exam in Firestore with file URL
