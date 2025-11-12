@@ -66,7 +66,7 @@ extension ExameDetailPresenter: ExameDetailPresenterProtocol {
         }
     }
     
-    func didTapSave(nome: String?, local: String?, medico: String?, motivo: String?, data: Date) {
+    func didTapSave(nome: String?, local: String?, medico: String?, motivo: String?, data: Date, newFiles: [(Data, String)]) {
         print("💾 ExameDetailPresenter: Salvar alterações")
         
         guard let currentExame = currentExame else {
@@ -83,7 +83,7 @@ extension ExameDetailPresenter: ExameDetailPresenterProtocol {
             return
         }
         
-        // Create updated exam
+        // Create updated exam preserving existing files
         let updatedExame = ExameModel(
             id: currentExame.id,
             nome: nome,
@@ -91,13 +91,14 @@ extension ExameDetailPresenter: ExameDetailPresenterProtocol {
             medicoSolicitante: medico,
             motivoQueixa: motivo,
             dataCadastro: data,
-            urlArquivo: currentExame.urlArquivo,
-            nomeArquivo: currentExame.nomeArquivo // Preserve file name
+            arquivosAnexados: currentExame.arquivosAnexados  // Keep existing files
         )
         
         print("💾 ExameDetailPresenter: Atualizando exame: \(updatedExame.nome)")
+        print("📎 Novos arquivos: \(newFiles.count)")
+        
         view?.showLoading()
-        exameDetailInteractor?.updateExam(updatedExame)
+        exameDetailInteractor?.updateExam(updatedExame, newFiles: newFiles)
     }
     
     func didTapCancel() {
@@ -106,17 +107,42 @@ extension ExameDetailPresenter: ExameDetailPresenterProtocol {
         exameDetailView?.showViewMode()
     }
     
-    func didTapViewFile() {
-        print("📎 ExameDetailPresenter: Visualizar arquivo")
+    func didTapViewFile(url: String) {
+        print("📎 ExameDetailPresenter: Visualizar arquivo: \(url)")
         
-        guard let urlString = currentExame?.urlArquivo,
-              let url = URL(string: urlString) else {
+        guard let fileURL = URL(string: url) else {
             view?.showError(title: "Erro", message: "URL do arquivo inválida")
             return
         }
         
-        // TODO: Download file if remote
-        exameDetailRouter?.showFileViewer(fileURL: url)
+        exameDetailRouter?.showFileViewer(fileURL: fileURL)
+    }
+    
+    func didTapRemoveFile(at index: Int) {
+        print("🗑️ ExameDetailPresenter: Remover arquivo no índice: \(index)")
+        
+        guard var currentExame = currentExame else { return }
+        guard index < currentExame.arquivosAnexados.count else { return }
+        
+        // Remove file from array
+        var files = currentExame.arquivosAnexados
+        files.remove(at: index)
+        
+        // Create updated exam without the removed file
+        let updatedExame = ExameModel(
+            id: currentExame.id,
+            nome: currentExame.nome,
+            localRealizado: currentExame.localRealizado,
+            medicoSolicitante: currentExame.medicoSolicitante,
+            motivoQueixa: currentExame.motivoQueixa,
+            dataCadastro: currentExame.dataCadastro,
+            arquivosAnexados: files
+        )
+        
+        // Update locally and inform interactor
+        self.currentExame = updatedExame
+        view?.showLoading()
+        exameDetailInteractor?.updateExam(updatedExame, newFiles: [])
     }
     
     func didTapShare() {

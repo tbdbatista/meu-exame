@@ -97,13 +97,14 @@ extension ExameDetailRouter {
     static func createModule(with exame: ExameModel) -> UIViewController {
         print("🏗️ ExameDetailRouter: Criando módulo ExameDetail para: \(exame.nome)")
         
-        // Get service from DependencyContainer
+        // Get services from DependencyContainer
         let exameService = DependencyContainer.shared.makeExamesService()
+        let storageService = FirebaseManager.shared // implements StorageServiceProtocol
         
         // Create components
         let view = ExameDetailViewController()
         let presenter = ExameDetailPresenter()
-        let interactor = ExameDetailInteractor(exameService: exameService)
+        let interactor = ExameDetailInteractor(exameService: exameService, storageService: storageService)
         let router = ExameDetailRouter()
         
         // Configure presenter with exam

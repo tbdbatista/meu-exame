@@ -1,4 +1,5 @@
 import Foundation
+import FirebaseAuth
 
 /// ExameDetailInteractor é o Interactor da tela de detalhes do exame.
 /// Segue o padrão VIPER, gerenciando a lógica de negócios e comunicação com serviços.
@@ -12,14 +13,13 @@ final class ExameDetailInteractor {
     
     weak var output: ExameDetailInteractorOutputProtocol?
     private let exameService: ExamesServiceProtocol
-    
-    // TODO: Inject StorageService when implemented
-    // private let storageService: StorageServiceProtocol
+    private let storageService: StorageServiceProtocol
     
     // MARK: - Initializer
     
-    init(exameService: ExamesServiceProtocol) {
+    init(exameService: ExamesServiceProtocol, storageService: StorageServiceProtocol) {
         self.exameService = exameService
+        self.storageService = storageService
     }
 }
 
@@ -48,17 +48,108 @@ extension ExameDetailInteractor: ExameDetailInteractorProtocol {
         }
     }
     
-    func updateExam(_ exame: ExameModel) {
+    func updateExam(_ exame: ExameModel, newFiles: [(Data, String)]) {
         print("💾 ExameDetailInteractor: Atualizando exame: \(exame.nome)")
+        print("📎 Novos arquivos: \(newFiles.count)")
         
+        // If no new files, just update exam data
+        guard !newFiles.isEmpty else {
+            updateExamInFirestore(exame)
+            return
+        }
+        
+        // Upload new files
+        uploadMultipleFilesAndUpdateExam(exame: exame, newFiles: newFiles)
+    }
+    
+    private func uploadMultipleFilesAndUpdateExam(exame: ExameModel, newFiles: [(Data, String)]) {
+        guard let userId = Auth.auth().currentUser?.uid else {
+            let error = NSError(domain: "ExameDetail", code: -1, userInfo: [NSLocalizedDescriptionKey: "Usuário não autenticado"])
+            output?.examUpdateDidFail(error: error)
+            return
+        }
+        
+        var uploadedFiles: [AttachedFile] = []
+        let group = DispatchGroup()
+        var uploadError: Error?
+        
+        for (fileData, fileName) in newFiles {
+            group.enter()
+            
+            // Extract file extension
+            let fileExtension = (fileName as NSString).pathExtension
+            
+            // Create friendly file name with counter if multiple files
+            let fileIndex = newFiles.firstIndex(where: { $0.1 == fileName }) ?? 0
+            let friendlyFileName: String
+            if newFiles.count > 1 {
+                if !fileExtension.isEmpty {
+                    friendlyFileName = "\(exame.nome)-\(fileIndex + 1).\(fileExtension)"
+                } else {
+                    friendlyFileName = "\(exame.nome)-\(fileIndex + 1).pdf"
+                }
+            } else {
+                if !fileExtension.isEmpty {
+                    friendlyFileName = "\(exame.nome).\(fileExtension)"
+                } else {
+                    friendlyFileName = "\(exame.nome).pdf"
+                }
+            }
+            
+            // Storage path: exames/userId/examId_friendlyFileName_timestamp
+            let timestamp = Date().timeIntervalSince1970
+            let storagePath = "exames/\(userId)/\(exame.id)_\(friendlyFileName)_\(Int(timestamp))"
+            
+            print("📤 Uploading file \(fileIndex + 1)/\(newFiles.count): \(storagePath)")
+            
+            storageService.upload(data: fileData, to: storagePath) { result in
+                switch result {
+                case .success(let downloadURL):
+                    print("✅ File uploaded: \(friendlyFileName)")
+                    uploadedFiles.append(AttachedFile(url: downloadURL, name: friendlyFileName))
+                    
+                case .failure(let error):
+                    print("❌ File upload failed: \(error.localizedDescription)")
+                    if uploadError == nil {
+                        uploadError = error
+                    }
+                }
+                group.leave()
+            }
+        }
+        
+        group.notify(queue: .main) { [weak self] in
+            if let error = uploadError {
+                print("❌ Some files failed to upload")
+                self?.output?.examUpdateDidFail(error: error)
+                return
+            }
+            
+            // Create updated exam with existing + new files
+            let allFiles = exame.arquivosAnexados + uploadedFiles
+            let updatedExame = ExameModel(
+                id: exame.id,
+                nome: exame.nome,
+                localRealizado: exame.localRealizado,
+                medicoSolicitante: exame.medicoSolicitante,
+                motivoQueixa: exame.motivoQueixa,
+                dataCadastro: exame.dataCadastro,
+                arquivosAnexados: allFiles
+            )
+            
+            self?.updateExamInFirestore(updatedExame)
+        }
+    }
+    
+    private func updateExamInFirestore(_ exame: ExameModel) {
         exameService.update(exame: exame) { [weak self] result in
             switch result {
             case .success:
-                print("✅ ExameDetailInteractor: Exame atualizado")
+                print("✅ ExameDetailInteractor: Exame atualizado no Firestore")
                 self?.output?.examDidUpdate(exame)
                 
             case .failure(let error):
-                print("❌ ExameDetailInteractor: Erro ao atualizar - \(error.localizedDescription)")
+                print("❌ ExameDetailInteractor: Erro ao atualizar no Firestore - \(error.localizedDescription)")
                 self?.output?.examUpdateDidFail(error: error)
             }
         }

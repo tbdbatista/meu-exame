@@ -1,4 +1,5 @@
 import UIKit
+import UniformTypeIdentifiers
 
 /// ExameDetailViewController é o View Controller da tela de detalhes do exame.
 /// Segue o padrão VIPER, gerenciando a View e repassando eventos para o Presenter.
@@ -58,13 +59,14 @@ final class ExameDetailViewController: UIViewController {
     }
     
     private func setupActions() {
-        exameDetailView.onSaveTapped = { [weak self] nome, local, medico, motivo, data in
+        exameDetailView.onSaveTapped = { [weak self] nome, local, medico, motivo, data, newFiles in
             self?.exameDetailPresenter?.didTapSave(
                 nome: nome,
                 local: local,
                 medico: medico,
                 motivo: motivo,
-                data: data
+                data: data,
+                newFiles: newFiles
             )
         }
         
@@ -72,9 +74,24 @@ final class ExameDetailViewController: UIViewController {
             self?.exameDetailPresenter?.didTapCancel()
         }
         
-        exameDetailView.onViewFileTapped = { [weak self] in
-            self?.exameDetailPresenter?.didTapViewFile()
+        exameDetailView.onViewFileTapped = { [weak self] url in
+            self?.exameDetailPresenter?.didTapViewFile(url: url)
         }
+        
+        exameDetailView.onAttachFileTapped = { [weak self] in
+            self?.presentDocumentPicker()
+        }
+        
+        exameDetailView.onRemoveFileTapped = { [weak self] index in
+            self?.exameDetailPresenter?.didTapRemoveFile(at: index)
+        }
+    }
+    
+    private func presentDocumentPicker() {
+        let documentPicker = UIDocumentPickerViewController(forOpeningContentTypes: [UTType.pdf, UTType.image, UTType.text])
+        documentPicker.delegate = self
+        documentPicker.allowsMultipleSelection = true  // Changed to support multiple files
+        present(documentPicker, animated: true)
     }
     
     // MARK: - Actions
@@ -115,10 +132,6 @@ extension ExameDetailViewController: ExameDetailViewProtocol {
         title = "Detalhes do Exame"
     }
     
-    func updateFileAttachment(hasFile: Bool, fileName: String?) {
-        exameDetailView.updateFileAttachment(hasFile: hasFile, fileName: fileName)
-    }
-    
     // MARK: - ViewProtocol
     
     func showLoading() {
@@ -152,6 +165,39 @@ extension ExameDetailViewController: ExameDetailViewProtocol {
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default))
         present(alert, animated: true)
+    }
+}
+
+// MARK: - UIDocumentPickerDelegate
+
+extension ExameDetailViewController: UIDocumentPickerDelegate {
+    func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+        for url in urls {
+            guard url.startAccessingSecurityScopedResource() else {
+                print("❌ Failed to access security scoped resource for: \(url.lastPathComponent)")
+                continue
+            }
+            
+            defer {
+                url.stopAccessingSecurityScopedResource()
+            }
+            
+            do {
+                let fileData = try Data(contentsOf: url)
+                let fileName = url.lastPathComponent
+                
+                print("📎 File selected: \(fileName) (\(fileData.count) bytes)")
+                
+                exameDetailView.addAttachedFile(data: fileData, name: fileName)
+            } catch {
+                print("❌ Error reading file \(url.lastPathComponent): \(error.localizedDescription)")
+                showError(title: "Erro", message: "Não foi possível ler o arquivo: \(url.lastPathComponent)")
+            }
+        }
+    }
+    
+    func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {
+        print("📎 Document picker cancelled")
     }
 }
 
