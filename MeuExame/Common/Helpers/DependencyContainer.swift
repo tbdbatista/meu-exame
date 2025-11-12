@@ -43,6 +43,12 @@ final class DependencyContainer {
         return FirestoreExamesService()
     }
     
+    /// Creates a UserService instance
+    /// - Returns: Configured UserServiceProtocol implementation
+    func makeUserService() -> UserServiceProtocol {
+        return FirestoreUserService()
+    }
+    
     // MARK: - Factory Methods
     
     /// Creates a Login VIPER module with all dependencies
