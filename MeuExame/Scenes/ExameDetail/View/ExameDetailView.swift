@@ -155,45 +155,30 @@ final class ExameDetailView: UIView {
     
     private let fileSectionLabel: UILabel = {
         let label = UILabel()
-        label.text = "Anexo"
+        label.text = "📎 Anexo"
         label.font = .systemFont(ofSize: 17, weight: .semibold)
         label.textColor = .label
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
     
-    private let fileContainerView: UIView = {
-        let view = UIView()
-        view.backgroundColor = .systemGray6
-        view.layer.cornerRadius = 12
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-    
-    private let fileIconImageView: UIImageView = {
-        let imageView = UIImageView()
-        imageView.image = UIImage(systemName: "doc.fill")
-        imageView.tintColor = .systemBlue
-        imageView.contentMode = .scaleAspectFit
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        return imageView
+    private let fileContainerButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.backgroundColor = .systemGray6
+        button.layer.cornerRadius = 12
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
     }()
     
     private let fileNameLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(ofSize: 15, weight: .medium)
+        label.font = .systemFont(ofSize: 16, weight: .medium)
         label.textColor = .label
+        label.textAlignment = .center
         label.numberOfLines = 2
+        label.isUserInteractionEnabled = false
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
-    }()
-    
-    private let viewFileButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setTitle("Ver Arquivo", for: .normal)
-        button.titleLabel?.font = .systemFont(ofSize: 15, weight: .semibold)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        return button
     }()
     
     private let noFileLabel: UILabel = {
@@ -202,6 +187,7 @@ final class ExameDetailView: UIView {
         label.font = .systemFont(ofSize: 15)
         label.textColor = .secondaryLabel
         label.textAlignment = .center
+        label.isUserInteractionEnabled = false
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -277,11 +263,9 @@ final class ExameDetailView: UIView {
         contentView.addSubview(datePicker)
         
         contentView.addSubview(fileSectionLabel)
-        contentView.addSubview(fileContainerView)
-        fileContainerView.addSubview(fileIconImageView)
-        fileContainerView.addSubview(fileNameLabel)
-        fileContainerView.addSubview(viewFileButton)
-        fileContainerView.addSubview(noFileLabel)
+        contentView.addSubview(fileContainerButton)
+        fileContainerButton.addSubview(fileNameLabel)
+        fileContainerButton.addSubview(noFileLabel)
         
         contentView.addSubview(buttonStackView)
         buttonStackView.addArrangedSubview(saveButton)
@@ -371,28 +355,20 @@ final class ExameDetailView: UIView {
             fileSectionLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             fileSectionLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             
-            fileContainerView.topAnchor.constraint(equalTo: fileSectionLabel.bottomAnchor, constant: 12),
-            fileContainerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
-            fileContainerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
-            fileContainerView.heightAnchor.constraint(equalToConstant: 80),
+            fileContainerButton.topAnchor.constraint(equalTo: fileSectionLabel.bottomAnchor, constant: 12),
+            fileContainerButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            fileContainerButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            fileContainerButton.heightAnchor.constraint(equalToConstant: 60),
             
-            fileIconImageView.leadingAnchor.constraint(equalTo: fileContainerView.leadingAnchor, constant: 16),
-            fileIconImageView.centerYAnchor.constraint(equalTo: fileContainerView.centerYAnchor),
-            fileIconImageView.widthAnchor.constraint(equalToConstant: 40),
-            fileIconImageView.heightAnchor.constraint(equalToConstant: 40),
+            fileNameLabel.leadingAnchor.constraint(equalTo: fileContainerButton.leadingAnchor, constant: 20),
+            fileNameLabel.trailingAnchor.constraint(equalTo: fileContainerButton.trailingAnchor, constant: -20),
+            fileNameLabel.centerYAnchor.constraint(equalTo: fileContainerButton.centerYAnchor),
             
-            fileNameLabel.leadingAnchor.constraint(equalTo: fileIconImageView.trailingAnchor, constant: 12),
-            fileNameLabel.centerYAnchor.constraint(equalTo: fileContainerView.centerYAnchor),
-            fileNameLabel.trailingAnchor.constraint(equalTo: viewFileButton.leadingAnchor, constant: -12),
-            
-            viewFileButton.trailingAnchor.constraint(equalTo: fileContainerView.trailingAnchor, constant: -16),
-            viewFileButton.centerYAnchor.constraint(equalTo: fileContainerView.centerYAnchor),
-            
-            noFileLabel.centerXAnchor.constraint(equalTo: fileContainerView.centerXAnchor),
-            noFileLabel.centerYAnchor.constraint(equalTo: fileContainerView.centerYAnchor),
+            noFileLabel.centerXAnchor.constraint(equalTo: fileContainerButton.centerXAnchor),
+            noFileLabel.centerYAnchor.constraint(equalTo: fileContainerButton.centerYAnchor),
             
             // Button Stack (Edit Mode)
-            buttonStackView.topAnchor.constraint(equalTo: fileContainerView.bottomAnchor, constant: 30),
+            buttonStackView.topAnchor.constraint(equalTo: fileContainerButton.bottomAnchor, constant: 30),
             buttonStackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             buttonStackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             buttonStackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -30),
@@ -405,7 +381,7 @@ final class ExameDetailView: UIView {
     private func setupActions() {
         saveButton.addTarget(self, action: #selector(saveButtonTapped), for: .touchUpInside)
         cancelButton.addTarget(self, action: #selector(cancelButtonTapped), for: .touchUpInside)
-        viewFileButton.addTarget(self, action: #selector(viewFileButtonTapped), for: .touchUpInside)
+        fileContainerButton.addTarget(self, action: #selector(fileButtonTapped), for: .touchUpInside)
     }
     
     // MARK: - Actions
@@ -424,7 +400,7 @@ final class ExameDetailView: UIView {
         onCancelTapped?()
     }
     
-    @objc private func viewFileButtonTapped() {
+    @objc private func fileButtonTapped() {
         onViewFileTapped?()
     }
     
@@ -484,21 +460,19 @@ final class ExameDetailView: UIView {
     
     func updateFileAttachment(hasFile: Bool, fileName: String?) {
         if hasFile {
-            fileIconImageView.isHidden = false
             fileNameLabel.isHidden = false
-            viewFileButton.isHidden = false
             noFileLabel.isHidden = true
+            fileContainerButton.isEnabled = true
             
             if let fileName = fileName, !fileName.isEmpty {
-                fileNameLabel.text = "📄 \(fileName)"
+                fileNameLabel.text = fileName
             } else {
-                fileNameLabel.text = "📄 Arquivo.pdf"
+                fileNameLabel.text = "Arquivo.pdf"
             }
         } else {
-            fileIconImageView.isHidden = true
             fileNameLabel.isHidden = true
-            viewFileButton.isHidden = true
             noFileLabel.isHidden = false
+            fileContainerButton.isEnabled = false
         }
     }
 }
