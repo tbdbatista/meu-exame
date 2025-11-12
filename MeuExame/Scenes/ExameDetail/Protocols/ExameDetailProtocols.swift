@@ -38,7 +38,10 @@ protocol ExameDetailPresenterProtocol: PresenterProtocol {
     ///   - medico: Updated doctor
     ///   - motivo: Updated reason
     ///   - data: Updated date
-    func didTapSave(nome: String?, local: String?, medico: String?, motivo: String?, data: Date)
+    ///   - fileData: New file data if user attached/changed file
+    ///   - fileName: New file name if user attached/changed file
+    ///   - hasFileChanged: Whether the user changed/removed the file
+    func didTapSave(nome: String?, local: String?, medico: String?, motivo: String?, data: Date, fileData: Data?, fileName: String?, hasFileChanged: Bool)
     
     /// Called when the user taps cancel (in edit mode)
     func didTapCancel()
@@ -58,8 +61,12 @@ protocol ExameDetailInteractorProtocol: InteractorProtocol {
     func fetchExam(examId: String)
     
     /// Updates an existing exam
-    /// - Parameter exame: Updated exam model
-    func updateExam(_ exame: ExameModel)
+    /// - Parameters:
+    ///   - exame: Updated exam model
+    ///   - fileData: New file data if user attached/changed file
+    ///   - fileName: New file name if user attached/changed file
+    ///   - shouldDeleteOldFile: Whether to delete the old file from storage
+    func updateExam(_ exame: ExameModel, fileData: Data?, fileName: String?, shouldDeleteOldFile: Bool)
     
     /// Deletes an exam
     /// - Parameter examId: ID of the exam to delete

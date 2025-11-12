@@ -66,7 +66,7 @@ extension ExameDetailPresenter: ExameDetailPresenterProtocol {
         }
     }
     
-    func didTapSave(nome: String?, local: String?, medico: String?, motivo: String?, data: Date) {
+    func didTapSave(nome: String?, local: String?, medico: String?, motivo: String?, data: Date, fileData: Data?, fileName: String?, hasFileChanged: Bool) {
         print("💾 ExameDetailPresenter: Salvar alterações")
         
         guard let currentExame = currentExame else {
@@ -83,7 +83,7 @@ extension ExameDetailPresenter: ExameDetailPresenterProtocol {
             return
         }
         
-        // Create updated exam
+        // Create updated exam with current file info (will be updated by interactor if file changed)
         let updatedExame = ExameModel(
             id: currentExame.id,
             nome: nome,
@@ -91,13 +91,18 @@ extension ExameDetailPresenter: ExameDetailPresenterProtocol {
             medicoSolicitante: medico,
             motivoQueixa: motivo,
             dataCadastro: data,
-            urlArquivo: currentExame.urlArquivo,
-            nomeArquivo: currentExame.nomeArquivo // Preserve file name
+            urlArquivo: hasFileChanged ? nil : currentExame.urlArquivo, // Clear if file removed/changed
+            nomeArquivo: hasFileChanged ? nil : currentExame.nomeArquivo // Clear if file removed/changed
         )
         
         print("💾 ExameDetailPresenter: Atualizando exame: \(updatedExame.nome)")
+        print("📎 Arquivo alterado: \(hasFileChanged), Novo arquivo: \(fileName ?? "nenhum")")
+        
         view?.showLoading()
-        exameDetailInteractor?.updateExam(updatedExame)
+        
+        // If file changed, tell interactor to handle file upload/deletion
+        let shouldDeleteOldFile = hasFileChanged && currentExame.temArquivo
+        exameDetailInteractor?.updateExam(updatedExame, fileData: fileData, fileName: fileName, shouldDeleteOldFile: shouldDeleteOldFile)
     }
     
     func didTapCancel() {

@@ -8,12 +8,17 @@ final class ExameDetailView: UIView {
     
     private var isEditMode = false
     private var currentExame: ExameModel?
+    private var attachedFileData: Data?
+    private var attachedFileName: String?
+    private var hasFileChanged = false
     
     // MARK: - Callbacks
     
-    var onSaveTapped: ((String?, String?, String?, String?, Date) -> Void)?
+    var onSaveTapped: ((String?, String?, String?, String?, Date, Data?, String?, Bool) -> Void)?
     var onCancelTapped: (() -> Void)?
     var onViewFileTapped: (() -> Void)?
+    var onAttachFileTapped: (() -> Void)?
+    var onRemoveFileTapped: (() -> Void)?
     
     // MARK: - UI Components
     
@@ -162,6 +167,7 @@ final class ExameDetailView: UIView {
         return label
     }()
     
+    // View mode: Shows file to view
     private let fileContainerButton: UIButton = {
         let button = UIButton(type: .system)
         button.backgroundColor = .systemGray6
@@ -190,6 +196,45 @@ final class ExameDetailView: UIView {
         label.isUserInteractionEnabled = false
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
+    }()
+    
+    // Edit mode: Attach/Change file button and preview
+    private let attachFileButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("📎 Anexar Arquivo", for: .normal)
+        button.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
+        button.backgroundColor = .systemGray6
+        button.layer.cornerRadius = 8
+        button.contentEdgeInsets = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.isHidden = true
+        return button
+    }()
+    
+    private let filePreviewContainer: UIView = {
+        let view = UIView()
+        view.backgroundColor = .systemGray6
+        view.layer.cornerRadius = 8
+        view.isHidden = true
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
+    private let previewFileNameLabel: UILabel = {
+        let label = UILabel()
+        label.font = .systemFont(ofSize: 14, weight: .medium)
+        label.textColor = .label
+        label.numberOfLines = 1
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
+    private let removeFileButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setImage(UIImage(systemName: "xmark.circle.fill"), for: .normal)
+        button.tintColor = .systemRed
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
     }()
     
     // MARK: - Action Buttons (Edit Mode)
@@ -266,6 +311,12 @@ final class ExameDetailView: UIView {
         contentView.addSubview(fileContainerButton)
         fileContainerButton.addSubview(fileNameLabel)
         fileContainerButton.addSubview(noFileLabel)
+        
+        // Edit mode file components
+        contentView.addSubview(attachFileButton)
+        contentView.addSubview(filePreviewContainer)
+        filePreviewContainer.addSubview(previewFileNameLabel)
+        filePreviewContainer.addSubview(removeFileButton)
         
         contentView.addSubview(buttonStackView)
         buttonStackView.addArrangedSubview(saveButton)
@@ -367,6 +418,27 @@ final class ExameDetailView: UIView {
             noFileLabel.centerXAnchor.constraint(equalTo: fileContainerButton.centerXAnchor),
             noFileLabel.centerYAnchor.constraint(equalTo: fileContainerButton.centerYAnchor),
             
+            // Edit Mode: Attach File Button
+            attachFileButton.topAnchor.constraint(equalTo: fileSectionLabel.bottomAnchor, constant: 12),
+            attachFileButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            attachFileButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            attachFileButton.heightAnchor.constraint(equalToConstant: 50),
+            
+            // Edit Mode: File Preview Container
+            filePreviewContainer.topAnchor.constraint(equalTo: attachFileButton.bottomAnchor, constant: 12),
+            filePreviewContainer.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            filePreviewContainer.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            filePreviewContainer.heightAnchor.constraint(equalToConstant: 50),
+            
+            previewFileNameLabel.leadingAnchor.constraint(equalTo: filePreviewContainer.leadingAnchor, constant: 12),
+            previewFileNameLabel.centerYAnchor.constraint(equalTo: filePreviewContainer.centerYAnchor),
+            previewFileNameLabel.trailingAnchor.constraint(equalTo: removeFileButton.leadingAnchor, constant: -8),
+            
+            removeFileButton.trailingAnchor.constraint(equalTo: filePreviewContainer.trailingAnchor, constant: -12),
+            removeFileButton.centerYAnchor.constraint(equalTo: filePreviewContainer.centerYAnchor),
+            removeFileButton.widthAnchor.constraint(equalToConstant: 24),
+            removeFileButton.heightAnchor.constraint(equalToConstant: 24),
+            
             // Button Stack (Edit Mode)
             buttonStackView.topAnchor.constraint(equalTo: fileContainerButton.bottomAnchor, constant: 30),
             buttonStackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
@@ -382,6 +454,8 @@ final class ExameDetailView: UIView {
         saveButton.addTarget(self, action: #selector(saveButtonTapped), for: .touchUpInside)
         cancelButton.addTarget(self, action: #selector(cancelButtonTapped), for: .touchUpInside)
         fileContainerButton.addTarget(self, action: #selector(fileButtonTapped), for: .touchUpInside)
+        attachFileButton.addTarget(self, action: #selector(attachFileButtonTapped), for: .touchUpInside)
+        removeFileButton.addTarget(self, action: #selector(removeFileButtonTapped), for: .touchUpInside)
     }
     
     // MARK: - Actions
@@ -392,7 +466,10 @@ final class ExameDetailView: UIView {
             localTextField.text,
             medicoTextField.text,
             motivoTextView.text,
-            datePicker.date
+            datePicker.date,
+            attachedFileData,
+            attachedFileName,
+            hasFileChanged
         )
     }
     
@@ -402,6 +479,18 @@ final class ExameDetailView: UIView {
     
     @objc private func fileButtonTapped() {
         onViewFileTapped?()
+    }
+    
+    @objc private func attachFileButtonTapped() {
+        onAttachFileTapped?()
+    }
+    
+    @objc private func removeFileButtonTapped() {
+        attachedFileData = nil
+        attachedFileName = nil
+        hasFileChanged = true
+        updateEditModeFileUI()
+        onRemoveFileTapped?()
     }
     
     // MARK: - Public Methods
@@ -434,6 +523,19 @@ final class ExameDetailView: UIView {
         localTextField.backgroundColor = .systemBackground
         medicoTextField.backgroundColor = .systemBackground
         motivoTextView.backgroundColor = .systemBackground
+        
+        // Show edit mode file UI
+        fileContainerButton.isHidden = true
+        attachFileButton.isHidden = false
+        
+        // Reset file change tracking and preserve current file
+        hasFileChanged = false
+        if let exame = currentExame, exame.temArquivo {
+            // Keep reference to current file (will download if needed)
+            attachedFileName = exame.nomeArquivoExibicao
+        }
+        
+        updateEditModeFileUI()
     }
     
     func showViewMode() {
@@ -451,6 +553,16 @@ final class ExameDetailView: UIView {
         localTextField.backgroundColor = .systemGray6
         medicoTextField.backgroundColor = .systemGray6
         motivoTextView.backgroundColor = .systemGray6
+        
+        // Show view mode file UI
+        fileContainerButton.isHidden = false
+        attachFileButton.isHidden = true
+        filePreviewContainer.isHidden = true
+        
+        // Reset file state
+        attachedFileData = nil
+        attachedFileName = nil
+        hasFileChanged = false
         
         // Restore original data
         if let exame = currentExame {
@@ -473,6 +585,26 @@ final class ExameDetailView: UIView {
             fileNameLabel.isHidden = true
             noFileLabel.isHidden = false
             fileContainerButton.isEnabled = false
+        }
+    }
+    
+    func setAttachedFile(data: Data, fileName: String) {
+        attachedFileData = data
+        attachedFileName = fileName
+        hasFileChanged = true
+        updateEditModeFileUI()
+    }
+    
+    private func updateEditModeFileUI() {
+        let hasFile = attachedFileData != nil || (currentExame?.temArquivo == true && !hasFileChanged)
+        
+        if hasFile, let name = attachedFileName {
+            previewFileNameLabel.text = "📄 \(name)"
+            filePreviewContainer.isHidden = false
+            attachFileButton.setTitle("📎 Alterar Arquivo", for: .normal)
+        } else {
+            filePreviewContainer.isHidden = true
+            attachFileButton.setTitle("📎 Anexar Arquivo", for: .normal)
         }
     }
 }
