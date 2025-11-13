@@ -504,15 +504,22 @@ final class HomeView: UIView {
             into: profileImageView,
             placeholder: placeholder
         ) { [weak self] image in
-            if let image = image {
-                print("✅ HomeView: Profile image loaded successfully")
-                // Ensure tint color is cleared when real image loads
-                self?.profileImageView.tintColor = nil
-            } else {
-                print("⚠️ HomeView: Failed to load profile image, keeping placeholder")
-                // Keep placeholder if load fails
-                self?.profileImageView.image = placeholder
-                self?.profileImageView.tintColor = .systemGray3
+            DispatchQueue.main.async {
+                guard let self = self else { return }
+                
+                if let image = image {
+                    print("✅ HomeView: Profile image loaded successfully")
+                    // Clear tint color and background when real image loads
+                    self.profileImageView.tintColor = nil
+                    self.profileImageView.backgroundColor = .clear
+                    self.profileImageView.image = image
+                } else {
+                    print("⚠️ HomeView: Failed to load profile image, keeping placeholder")
+                    // Keep placeholder if load fails
+                    self.profileImageView.image = placeholder
+                    self.profileImageView.tintColor = .systemGray3
+                    self.profileImageView.backgroundColor = .systemGray5
+                }
             }
         }
     }
