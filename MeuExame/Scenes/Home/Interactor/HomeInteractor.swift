@@ -71,11 +71,10 @@ extension HomeInteractor: HomeInteractorProtocol {
     private func calculateSummary(from exames: [ExameModel]) -> ExamSummary {
         let totalExams = exames.count
         
-        // Calculate recent exams (last 30 days)
-        let thirtyDaysAgo = Calendar.current.date(byAdding: .day, value: -30, to: Date()) ?? Date()
-        let recentExams = exames.filter { $0.dataCadastro >= thirtyDaysAgo }
+        // Calculate scheduled exams (future dates)
+        let scheduledExams = exames.filter { $0.isAgendado }
         
-        // Calculate "pending" exams (for now, just count exams without files)
+        // Calculate "pending" exams (exams without files - awaiting results)
         let pendingExams = exames.filter { !$0.temArquivo }
         
         // Get last exam date
@@ -83,7 +82,7 @@ extension HomeInteractor: HomeInteractorProtocol {
         
         return ExamSummary(
             totalExams: totalExams,
-            recentExamsCount: recentExams.count,
+            scheduledExamsCount: scheduledExams.count,
             pendingExamsCount: pendingExams.count,
             lastExamDate: lastExamDate
         )
