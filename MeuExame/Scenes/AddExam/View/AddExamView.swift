@@ -276,6 +276,8 @@ final class AddExamView: UIView {
         contentView.addSubview(motivoErrorLabel)
         contentView.addSubview(dataLabel)
         contentView.addSubview(datePicker)
+        contentView.addSubview(scheduledDateLabel)
+        contentView.addSubview(scheduledDateSwitch)
         contentView.addSubview(attachmentSectionLabel)
         contentView.addSubview(attachFileButton)
         contentView.addSubview(filePreviewContainer)
