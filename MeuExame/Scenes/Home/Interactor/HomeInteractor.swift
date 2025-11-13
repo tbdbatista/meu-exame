@@ -97,6 +97,7 @@ extension HomeInteractor: HomeInteractorProtocol {
             switch result {
             case .success(let userModel):
                 print("✅ HomeInteractor: User profile loaded from Firestore - \(userModel.displayName)")
+                print("📸 HomeInteractor: photoURL from Firestore: \(userModel.photoURL ?? "nil")")
                 
                 // Convert UserModel to UserProfile
                 let profile = UserProfile(
@@ -106,6 +107,7 @@ extension HomeInteractor: HomeInteractorProtocol {
                     photoURL: userModel.photoURL, // This comes from Firestore
                     memberSince: userModel.dataCriacao
                 )
+                print("📸 HomeInteractor: profile.photoURL: \(profile.photoURL ?? "nil")")
                 self?.output?.userProfileDidLoad(profile)
                 
             case .failure(let error):

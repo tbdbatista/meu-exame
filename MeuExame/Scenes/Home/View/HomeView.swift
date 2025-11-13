@@ -461,9 +461,15 @@ final class HomeView: UIView {
         userNameLabel.text = "Olá, \(profile.displayName)!"
         userEmailLabel.text = profile.email
         
-        // Load profile image if URL exists
-        if let photoURL = profile.photoURL {
+        // Load profile image if URL exists and is not empty
+        if let photoURL = profile.photoURL, !photoURL.isEmpty {
+            print("📸 HomeView: updateProfile - photoURL: \(photoURL)")
             loadProfileImage(from: photoURL)
+        } else {
+            print("⚠️ HomeView: updateProfile - No photoURL, resetting to placeholder")
+            // Reset to default placeholder if no photo URL
+            profileImageView.image = UIImage(systemName: "person.circle.fill")
+            profileImageView.tintColor = .systemGray3
         }
     }
     
@@ -497,7 +503,18 @@ final class HomeView: UIView {
             from: urlString,
             into: profileImageView,
             placeholder: placeholder
-        )
+        ) { [weak self] image in
+            if let image = image {
+                print("✅ HomeView: Profile image loaded successfully")
+                // Ensure tint color is cleared when real image loads
+                self?.profileImageView.tintColor = nil
+            } else {
+                print("⚠️ HomeView: Failed to load profile image, keeping placeholder")
+                // Keep placeholder if load fails
+                self?.profileImageView.image = placeholder
+                self?.profileImageView.tintColor = .systemGray3
+            }
+        }
     }
 }
 
