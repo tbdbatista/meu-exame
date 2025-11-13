@@ -6,7 +6,7 @@ final class AddExamView: UIView {
     
     // MARK: - Callbacks
     
-    var onSaveTapped: ((String?, String?, String?, String?, Date, Date?, Data?, String?) -> Void)?
+    var onSaveTapped: ((String?, String?, String?, String?, Date, Bool, Data?, String?) -> Void)?
     var onCancelTapped: (() -> Void)?
     var onAttachFileTapped: (() -> Void)?
     var onRemoveFileTapped: (() -> Void)?
@@ -151,14 +151,14 @@ final class AddExamView: UIView {
     
     let datePicker: UIDatePicker = {
         let picker = UIDatePicker()
-        picker.datePickerMode = .date
+        picker.datePickerMode = .date // Default: only date for completed exams
         picker.preferredDatePickerStyle = .compact
-        picker.maximumDate = Date()
+        // No minimum date - allow past dates for completed exams
         picker.translatesAutoresizingMaskIntoConstraints = false
         return picker
     }()
     
-    // MARK: - Scheduled Date Section
+    // MARK: - Scheduled Exam Section
     
     private let scheduledDateSwitch: UISwitch = {
         let switchControl = UISwitch()
@@ -173,16 +173,6 @@ final class AddExamView: UIView {
         label.textColor = .label
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
-    }()
-    
-    private let scheduledDatePicker: UIDatePicker = {
-        let picker = UIDatePicker()
-        picker.datePickerMode = .dateAndTime
-        picker.preferredDatePickerStyle = .compact
-        picker.minimumDate = Date()
-        picker.translatesAutoresizingMaskIntoConstraints = false
-        picker.isHidden = true
-        return picker
     }()
     
     // MARK: - File Attachment
@@ -288,7 +278,6 @@ final class AddExamView: UIView {
         contentView.addSubview(datePicker)
         contentView.addSubview(scheduledDateLabel)
         contentView.addSubview(scheduledDateSwitch)
-        contentView.addSubview(scheduledDatePicker)
         contentView.addSubview(attachmentSectionLabel)
         contentView.addSubview(attachFileButton)
         contentView.addSubview(filePreviewContainer)
@@ -298,9 +287,6 @@ final class AddExamView: UIView {
         filePreviewContainer.addSubview(removeFileButton)
         
         motivoTextView.delegate = self
-        
-        // Scheduled date switch action
-        scheduledDateSwitch.addTarget(self, action: #selector(scheduledDateSwitchChanged), for: .valueChanged)
     }
     
     private func setupConstraints() {
@@ -385,13 +371,8 @@ final class AddExamView: UIView {
             scheduledDateSwitch.centerYAnchor.constraint(equalTo: scheduledDateLabel.centerYAnchor),
             scheduledDateSwitch.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             
-            // Scheduled Date Picker
-            scheduledDatePicker.topAnchor.constraint(equalTo: scheduledDateLabel.bottomAnchor, constant: 12),
-            scheduledDatePicker.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
-            scheduledDatePicker.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
-            
             // Attachment Section
-            attachmentSectionLabel.topAnchor.constraint(equalTo: scheduledDatePicker.bottomAnchor, constant: 24),
+            attachmentSectionLabel.topAnchor.constraint(equalTo: scheduledDateLabel.bottomAnchor, constant: 24),
             attachmentSectionLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             attachmentSectionLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             
@@ -432,6 +413,10 @@ final class AddExamView: UIView {
         nomeTextField.delegate = self
         localTextField.delegate = self
         medicoTextField.delegate = self
+        motivoTextView.delegate = self
+        
+        // Scheduled date switch action
+        scheduledDateSwitch.addTarget(self, action: #selector(scheduledDateSwitchChanged), for: .valueChanged)
     }
     
     private func setupKeyboardObservers() {
@@ -452,23 +437,34 @@ final class AddExamView: UIView {
     // MARK: - Actions
     
     @objc private func saveButtonTapped() {
-        let scheduledDate: Date? = scheduledDateSwitch.isOn ? scheduledDatePicker.date : nil
+        let isScheduled = scheduledDateSwitch.isOn
         onSaveTapped?(
             nomeTextField.text,
             localTextField.text,
             medicoTextField.text,
             motivoTextView.text,
             datePicker.date,
-            scheduledDate,
+            isScheduled,
             attachedFileData,
             attachedFileName
         )
     }
     
     @objc private func scheduledDateSwitchChanged() {
-        UIView.animate(withDuration: 0.3) {
-            self.scheduledDatePicker.isHidden = !self.scheduledDateSwitch.isOn
-            self.layoutIfNeeded()
+        let isScheduled = scheduledDateSwitch.isOn
+        
+        if isScheduled {
+            // For scheduled exams: show date and time, minimum date is today
+            datePicker.datePickerMode = .dateAndTime
+            datePicker.minimumDate = Date()
+            // If current date is in the past, set to now
+            if datePicker.date < Date() {
+                datePicker.date = Date()
+            }
+        } else {
+            // For completed exams: show only date, allow past dates
+            datePicker.datePickerMode = .date
+            datePicker.minimumDate = nil
         }
     }
     
@@ -509,8 +505,8 @@ final class AddExamView: UIView {
         motivoTextView.text = ""
         datePicker.date = Date()
         scheduledDateSwitch.isOn = false
-        scheduledDatePicker.isHidden = true
-        scheduledDatePicker.date = Date().addingTimeInterval(86400) // Tomorrow by default
+        datePicker.datePickerMode = .date
+        datePicker.minimumDate = nil
         attachedFileData = nil
         attachedFileName = nil
         updateFileAttachment(fileName: nil, hasFile: false)

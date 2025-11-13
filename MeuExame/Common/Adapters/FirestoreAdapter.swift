@@ -14,8 +14,10 @@ final class FirestoreAdapter {
         static let medicoSolicitante = "medicoSolicitante"
         static let motivoQueixa = "motivoQueixa"
         static let dataCadastro = "dataCadastro"
-        static let dataAgendamento = "dataAgendamento"
+        static let dataPronto = "dataPronto"
+        static let dataAgendamento = "dataAgendamento" // Legacy - for migration
         static let urlArquivo = "urlArquivo"
+        static let arquivosAnexados = "arquivosAnexados"
     }
     
     // MARK: - Model to Firestore
@@ -33,14 +35,26 @@ final class FirestoreAdapter {
             Keys.dataCadastro: Timestamp(date: exame.dataCadastro)
         ]
         
-        // Optional scheduled date - only include if not nil
-        if let dataAgendamento = exame.dataAgendamento {
-            data[Keys.dataAgendamento] = Timestamp(date: dataAgendamento)
+        // Optional dataPronto - only include if not nil
+        if let dataPronto = exame.dataPronto {
+            data[Keys.dataPronto] = Timestamp(date: dataPronto)
         }
         
-        // Optional URL - only include if not nil
+        // Optional URL - only include if not nil (legacy)
         if let urlArquivo = exame.urlArquivo {
             data[Keys.urlArquivo] = urlArquivo
+        }
+        
+        // Attached files array
+        if !exame.arquivosAnexados.isEmpty {
+            let filesData = exame.arquivosAnexados.map { file in
+                [
+                    "id": file.id,
+                    "url": file.url,
+                    "name": file.name
+                ]
+            }
+            data[Keys.arquivosAnexados] = filesData
         }
         
         return data
@@ -79,8 +93,12 @@ final class FirestoreAdapter {
         let id = (data[Keys.id] as? String) ?? documentId ?? UUID().uuidString
         
         // Extract and convert Date from Timestamp
+        // Migration: If dataAgendamento exists (legacy), use it as dataCadastro
         let dataCadastro: Date
-        if let timestamp = data[Keys.dataCadastro] as? Timestamp {
+        if let legacyTimestamp = data[Keys.dataAgendamento] as? Timestamp {
+            // Legacy: dataAgendamento was used as the exam date
+            dataCadastro = legacyTimestamp.dateValue()
+        } else if let timestamp = data[Keys.dataCadastro] as? Timestamp {
             dataCadastro = timestamp.dateValue()
         } else if let date = data[Keys.dataCadastro] as? Date {
             // Fallback for direct Date objects (shouldn't happen in Firestore)
@@ -90,18 +108,31 @@ final class FirestoreAdapter {
             dataCadastro = Date()
         }
         
-        // Extract optional scheduled date
-        let dataAgendamento: Date?
-        if let timestamp = data[Keys.dataAgendamento] as? Timestamp {
-            dataAgendamento = timestamp.dateValue()
-        } else if let date = data[Keys.dataAgendamento] as? Date {
-            dataAgendamento = date
+        // Extract optional dataPronto
+        let dataPronto: Date?
+        if let timestamp = data[Keys.dataPronto] as? Timestamp {
+            dataPronto = timestamp.dateValue()
+        } else if let date = data[Keys.dataPronto] as? Date {
+            dataPronto = date
         } else {
-            dataAgendamento = nil
+            dataPronto = nil
         }
         
-        // Extract optional URL
+        // Extract optional URL (legacy)
         let urlArquivo = data[Keys.urlArquivo] as? String
+        
+        // Extract attached files array
+        var arquivosAnexados: [AttachedFile] = []
+        if let filesArray = data[Keys.arquivosAnexados] as? [[String: Any]] {
+            arquivosAnexados = filesArray.compactMap { fileDict in
+                guard let id = fileDict["id"] as? String,
+                      let url = fileDict["url"] as? String,
+                      let name = fileDict["name"] as? String else {
+                    return nil
+                }
+                return AttachedFile(id: id, url: url, name: name)
+            }
+        }
         
         return ExameModel(
             id: id,
@@ -110,7 +141,8 @@ final class FirestoreAdapter {
             medicoSolicitante: medicoSolicitante,
             motivoQueixa: motivoQueixa,
             dataCadastro: dataCadastro,
-            dataAgendamento: dataAgendamento,
+            dataPronto: dataPronto,
+            arquivosAnexados: arquivosAnexados,
             urlArquivo: urlArquivo
         )
     }
@@ -153,20 +185,34 @@ final class FirestoreAdapter {
             Keys.dataCadastro: Timestamp(date: exame.dataCadastro)
         ]
         
-        // Handle optional scheduled date
-        if let dataAgendamento = exame.dataAgendamento {
-            data[Keys.dataAgendamento] = Timestamp(date: dataAgendamento)
+        // Handle optional dataPronto
+        if let dataPronto = exame.dataPronto {
+            data[Keys.dataPronto] = Timestamp(date: dataPronto)
         } else {
             // Explicitly remove field if nil
-            data[Keys.dataAgendamento] = FieldValue.delete()
+            data[Keys.dataPronto] = FieldValue.delete()
         }
         
-        // Handle optional URL
+        // Handle optional URL (legacy)
         if let urlArquivo = exame.urlArquivo {
             data[Keys.urlArquivo] = urlArquivo
         } else {
             // Explicitly remove field if nil
             data[Keys.urlArquivo] = FieldValue.delete()
+        }
+        
+        // Handle attached files array
+        if !exame.arquivosAnexados.isEmpty {
+            let filesData = exame.arquivosAnexados.map { file in
+                [
+                    "id": file.id,
+                    "url": file.url,
+                    "name": file.name
+                ]
+            }
+            data[Keys.arquivosAnexados] = filesData
+        } else {
+            data[Keys.arquivosAnexados] = FieldValue.delete()
         }
         
         return data

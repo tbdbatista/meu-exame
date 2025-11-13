@@ -52,21 +52,21 @@ extension ExameDetailInteractor: ExameDetailInteractorProtocol {
         }
     }
     
-    func updateExam(_ exame: ExameModel, newFiles: [(Data, String)]) {
+    func updateExam(_ exame: ExameModel, isScheduled: Bool, newFiles: [(Data, String)]) {
         print("💾 ExameDetailInteractor: Atualizando exame: \(exame.nome)")
         print("📎 Novos arquivos: \(newFiles.count)")
         
         // If no new files, just update exam data
         guard !newFiles.isEmpty else {
-            updateExamInFirestore(exame)
+            updateExamInFirestore(exame, isScheduled: isScheduled)
             return
         }
         
         // Upload new files
-        uploadMultipleFilesAndUpdateExam(exame: exame, newFiles: newFiles)
+        uploadMultipleFilesAndUpdateExam(exame: exame, isScheduled: isScheduled, newFiles: newFiles)
     }
     
-    private func uploadMultipleFilesAndUpdateExam(exame: ExameModel, newFiles: [(Data, String)]) {
+    private func uploadMultipleFilesAndUpdateExam(exame: ExameModel, isScheduled: Bool, newFiles: [(Data, String)]) {
         guard let userId = Auth.auth().currentUser?.uid else {
             let error = NSError(domain: "ExameDetail", code: -1, userInfo: [NSLocalizedDescriptionKey: "Usuário não autenticado"])
             output?.examUpdateDidFail(error: error)
@@ -138,22 +138,21 @@ extension ExameDetailInteractor: ExameDetailInteractorProtocol {
                 medicoSolicitante: exame.medicoSolicitante,
                 motivoQueixa: exame.motivoQueixa,
                 dataCadastro: exame.dataCadastro,
-                dataAgendamento: exame.dataAgendamento,
                 arquivosAnexados: allFiles
             )
             
-            self?.updateExamInFirestore(updatedExame)
+            self?.updateExamInFirestore(updatedExame, isScheduled: isScheduled)
         }
     }
     
-    private func updateExamInFirestore(_ exame: ExameModel) {
+    private func updateExamInFirestore(_ exame: ExameModel, isScheduled: Bool) {
         exameService.update(exame: exame) { [weak self] result in
             switch result {
             case .success:
                 print("✅ ExameDetailInteractor: Exame atualizado no Firestore")
                 
-                // Handle notifications: cancel old, schedule new if needed
-                self?.handleNotificationUpdate(oldExame: self?.originalExame, newExame: exame)
+                // Handle notifications: cancel old, schedule new only if scheduled
+                self?.handleNotificationUpdate(oldExame: self?.originalExame, newExame: exame, isScheduled: isScheduled)
                 self?.originalExame = exame
                 
                 self?.output?.examDidUpdate(exame)
@@ -165,20 +164,21 @@ extension ExameDetailInteractor: ExameDetailInteractorProtocol {
         }
     }
     
-    private func handleNotificationUpdate(oldExame: ExameModel?, newExame: ExameModel) {
-        // Cancel old notification if existed
-        if let oldExame = oldExame, oldExame.dataAgendamento != nil {
+    private func handleNotificationUpdate(oldExame: ExameModel?, newExame: ExameModel, isScheduled: Bool) {
+        // Cancel old notification if exam was scheduled for future
+        if let oldExame = oldExame, oldExame.dataCadastro > Date() {
             notificationService.cancelExamNotification(examId: oldExame.id)
         }
         
-        // Schedule new notification if exam has scheduled date in the future
-        if let dataAgendamento = newExame.dataAgendamento, dataAgendamento > Date() {
+        // Schedule new notification only if exam is scheduled (future date)
+        if isScheduled && newExame.dataCadastro > Date() {
             scheduleNotification(for: newExame)
         }
     }
     
     private func scheduleNotification(for exame: ExameModel) {
-        guard let dataAgendamento = exame.dataAgendamento else { return }
+        // Only schedule if exam is in the future
+        guard exame.dataCadastro > Date() else { return }
         
         notificationService.requestAuthorization { [weak self] granted, error in
             if let error = error {
@@ -190,7 +190,7 @@ extension ExameDetailInteractor: ExameDetailInteractorProtocol {
                 self?.notificationService.scheduleExamNotification(
                     examId: exame.id,
                     examName: exame.nome,
-                    scheduledDate: dataAgendamento
+                    scheduledDate: exame.dataCadastro
                 ) { result in
                     switch result {
                     case .success:
@@ -208,8 +208,8 @@ extension ExameDetailInteractor: ExameDetailInteractorProtocol {
     func deleteExam(examId: String) {
         print("🗑️ ExameDetailInteractor: Deletando exame: \(examId)")
         
-        // Cancel notification if exam was scheduled
-        if let originalExame = originalExame, originalExame.dataAgendamento != nil {
+        // Cancel notification if exam was scheduled for future
+        if let originalExame = originalExame, originalExame.dataCadastro > Date() {
             notificationService.cancelExamNotification(examId: examId)
         }
         
