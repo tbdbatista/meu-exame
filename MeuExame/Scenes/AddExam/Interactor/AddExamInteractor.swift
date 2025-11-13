@@ -34,22 +34,22 @@ extension AddExamInteractor: InteractorProtocol {
 // MARK: - AddExamInteractorProtocol
 
 extension AddExamInteractor: AddExamInteractorProtocol {
-    func createExam(exame: ExameModel, fileData: Data?, fileName: String?) {
-        print("📝 AddExamInteractor: Criando exame '\(exame.nome)'")
+    func createExam(exame: ExameModel, isScheduled: Bool, fileData: Data?, fileName: String?) {
+        print("📝 AddExamInteractor: Criando exame '\(exame.nome)' (agendado: \(isScheduled))")
         
         // Check if there's a file to upload
         if let fileData = fileData, let fileName = fileName {
             print("📤 AddExamInteractor: Arquivo anexado, iniciando upload")
-            uploadFileAndCreateExam(exame: exame, fileData: fileData, fileName: fileName)
+            uploadFileAndCreateExam(exame: exame, isScheduled: isScheduled, fileData: fileData, fileName: fileName)
         } else {
             print("📝 AddExamInteractor: Sem arquivo anexado")
-            createExamInFirestore(exame)
+            createExamInFirestore(exame, isScheduled: isScheduled)
         }
     }
     
     // MARK: - Private Methods
     
-    private func uploadFileAndCreateExam(exame: ExameModel, fileData: Data, fileName: String) {
+    private func uploadFileAndCreateExam(exame: ExameModel, isScheduled: Bool, fileData: Data, fileName: String) {
         // Get current user ID for storage path
         guard let userId = Auth.auth().currentUser?.uid else {
             print("❌ AddExamInteractor: Usuário não autenticado")
@@ -96,7 +96,7 @@ extension AddExamInteractor: AddExamInteractorProtocol {
                 )
                 
                 // Now create exam in Firestore with file URL
-                self?.createExamInFirestore(updatedExame)
+                self?.createExamInFirestore(updatedExame, isScheduled: isScheduled)
                 
             case .failure(let error):
                 print("❌ AddExamInteractor: Erro no upload - \(error.localizedDescription)")
@@ -105,15 +105,15 @@ extension AddExamInteractor: AddExamInteractorProtocol {
         }
     }
     
-    private func createExamInFirestore(_ exame: ExameModel) {
+    private func createExamInFirestore(_ exame: ExameModel, isScheduled: Bool) {
         exameService.create(exame: exame) { [weak self] result in
             switch result {
             case .success(let createdExame):
                 print("✅ AddExamInteractor: Exame criado no Firestore")
                 print("📄 AddExamInteractor: URL do arquivo: \(createdExame.urlArquivo ?? "nenhum")")
                 
-                // Schedule notification if exam is scheduled for future
-                if createdExame.dataCadastro > Date() {
+                // Schedule notification only if exam is scheduled (future date)
+                if isScheduled && createdExame.dataCadastro > Date() {
                     print("📅 AddExamInteractor: Agendando notificação para \(createdExame.dataCadastro)")
                     self?.scheduleNotification(for: createdExame)
                 }

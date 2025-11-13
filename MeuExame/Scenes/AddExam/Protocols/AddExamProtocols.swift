@@ -34,10 +34,11 @@ protocol AddExamPresenterProtocol: PresenterProtocol {
     ///   - local: Place where exam was performed
     ///   - medico: Doctor who requested the exam
     ///   - motivo: Reason/complaint
-    ///   - data: Date of the exam (can be future date for scheduled exams)
+    ///   - data: Date of the exam
+    ///   - isScheduled: Whether the exam is scheduled (future) or completed (past)
     ///   - fileData: Optional file data (image/PDF)
     ///   - fileName: Optional file name
-    func didTapSave(nome: String?, local: String?, medico: String?, motivo: String?, data: Date, fileData: Data?, fileName: String?)
+    func didTapSave(nome: String?, local: String?, medico: String?, motivo: String?, data: Date, isScheduled: Bool, fileData: Data?, fileName: String?)
     
     /// Called when the user taps attach file button
     func didTapAttachFile()
@@ -57,7 +58,7 @@ protocol AddExamInteractorProtocol: InteractorProtocol {
     ///   - exame: Exam model to create
     ///   - fileData: Optional file data to upload
     ///   - fileName: Optional file name
-    func createExam(exame: ExameModel, fileData: Data?, fileName: String?)
+    func createExam(exame: ExameModel, isScheduled: Bool, fileData: Data?, fileName: String?)
 }
 
 /// Protocol for the AddExam Interactor's output.

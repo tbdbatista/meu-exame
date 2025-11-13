@@ -66,7 +66,7 @@ extension ExameDetailPresenter: ExameDetailPresenterProtocol {
         }
     }
     
-    func didTapSave(nome: String?, local: String?, medico: String?, motivo: String?, data: Date, newFiles: [(Data, String)]) {
+    func didTapSave(nome: String?, local: String?, medico: String?, motivo: String?, data: Date, isScheduled: Bool, newFiles: [(Data, String)]) {
         print("💾 ExameDetailPresenter: Salvar alterações")
         
         guard let currentExame = currentExame else {
@@ -94,11 +94,11 @@ extension ExameDetailPresenter: ExameDetailPresenterProtocol {
             arquivosAnexados: currentExame.arquivosAnexados  // Keep existing files
         )
         
-        print("💾 ExameDetailPresenter: Atualizando exame: \(updatedExame.nome)")
+        print("💾 ExameDetailPresenter: Atualizando exame: \(updatedExame.nome) (agendado: \(isScheduled))")
         print("📎 Novos arquivos: \(newFiles.count)")
         
         view?.showLoading()
-        exameDetailInteractor?.updateExam(updatedExame, newFiles: newFiles)
+        exameDetailInteractor?.updateExam(updatedExame, isScheduled: isScheduled, newFiles: newFiles)
     }
     
     func didTapCancel() {
@@ -142,7 +142,9 @@ extension ExameDetailPresenter: ExameDetailPresenterProtocol {
         // Update locally and inform interactor
         self.currentExame = updatedExame
         view?.showLoading()
-        exameDetailInteractor?.updateExam(updatedExame, newFiles: [])
+        // Use current scheduled status from the exam
+        let isScheduled = updatedExame.isAgendado
+        exameDetailInteractor?.updateExam(updatedExame, isScheduled: isScheduled, newFiles: [])
     }
     
     func didTapShare() {

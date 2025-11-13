@@ -40,7 +40,7 @@ extension AddExamPresenter: PresenterProtocol {
 // MARK: - AddExamPresenterProtocol
 
 extension AddExamPresenter: AddExamPresenterProtocol {
-    func didTapSave(nome: String?, local: String?, medico: String?, motivo: String?, data: Date, fileData: Data?, fileName: String?) {
+    func didTapSave(nome: String?, local: String?, medico: String?, motivo: String?, data: Date, isScheduled: Bool, fileData: Data?, fileName: String?) {
         print("📝 AddExamPresenter: Tentando salvar exame")
         
         // Validate input
@@ -69,10 +69,10 @@ extension AddExamPresenter: AddExamPresenterProtocol {
             urlArquivo: nil // Will be set after upload if file exists
         )
         
-        print("📝 AddExamPresenter: Criando exame: \(exame.nome)")
+        print("📝 AddExamPresenter: Criando exame: \(exame.nome) (agendado: \(isScheduled))")
         view?.showLoading()
         
-        addExamInteractor?.createExam(exame: exame, fileData: fileData, fileName: fileName)
+        addExamInteractor?.createExam(exame: exame, isScheduled: isScheduled, fileData: fileData, fileName: fileName)
     }
     
     func didTapAttachFile() {

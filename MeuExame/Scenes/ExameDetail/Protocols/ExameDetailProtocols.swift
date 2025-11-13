@@ -34,7 +34,7 @@ protocol ExameDetailPresenterProtocol: PresenterProtocol {
     ///   - data: Updated date
     ///   - scheduledDate: Optional scheduled date for future exams
     ///   - newFiles: Array of new files to attach (data and name tuples)
-    func didTapSave(nome: String?, local: String?, medico: String?, motivo: String?, data: Date, newFiles: [(Data, String)])
+    func didTapSave(nome: String?, local: String?, medico: String?, motivo: String?, data: Date, isScheduled: Bool, newFiles: [(Data, String)])
     
     /// Called when the user taps cancel (in edit mode)
     func didTapCancel()
@@ -61,8 +61,9 @@ protocol ExameDetailInteractorProtocol: InteractorProtocol {
     /// Updates an existing exam
     /// - Parameters:
     ///   - exame: Updated exam model (with existing files)
+    ///   - isScheduled: Whether the exam is scheduled (future) or completed (past)
     ///   - newFiles: Array of new files to attach (data and name tuples)
-    func updateExam(_ exame: ExameModel, newFiles: [(Data, String)])
+    func updateExam(_ exame: ExameModel, isScheduled: Bool, newFiles: [(Data, String)])
     
     /// Deletes an exam
     /// - Parameter examId: ID of the exam to delete

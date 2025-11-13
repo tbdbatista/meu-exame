@@ -59,13 +59,14 @@ final class ExameDetailViewController: UIViewController {
     }
     
     private func setupActions() {
-        exameDetailView.onSaveTapped = { [weak self] nome, local, medico, motivo, data, newFiles in
+        exameDetailView.onSaveTapped = { [weak self] nome, local, medico, motivo, data, isScheduled, newFiles in
             self?.exameDetailPresenter?.didTapSave(
                 nome: nome,
                 local: local,
                 medico: medico,
                 motivo: motivo,
                 data: data,
+                isScheduled: isScheduled,
                 newFiles: newFiles
             )
         }
