@@ -394,11 +394,32 @@ final class ProfileView: UIView {
         
         // Update photo or initials
         if let photoURL = user.photoURL, !photoURL.isEmpty {
-            // TODO: Load image from URL (use SDWebImage or similar)
-            // For now, show initials
+            print("📸 ProfileView: Loading profile image from: \(photoURL)")
+            // Show initials as placeholder while loading
             initialsLabel.text = user.initials
+            initialsLabel.isHidden = false
+            
+            // Load image from URL
+            ImageLoader.loadImage(
+                from: photoURL,
+                into: profileImageView,
+                placeholder: nil
+            ) { [weak self] image in
+                // Hide initials when image loads successfully
+                DispatchQueue.main.async {
+                    if image != nil {
+                        self?.initialsLabel.isHidden = true
+                    } else {
+                        // If image failed to load, keep initials visible
+                        self?.initialsLabel.isHidden = false
+                    }
+                }
+            }
         } else {
+            // No photo URL, show initials
             initialsLabel.text = user.initials
+            initialsLabel.isHidden = false
+            profileImageView.image = nil
         }
     }
     

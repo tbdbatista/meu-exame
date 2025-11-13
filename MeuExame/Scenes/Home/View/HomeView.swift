@@ -488,9 +488,16 @@ final class HomeView: UIView {
     }
     
     private func loadProfileImage(from urlString: String) {
-        // TODO: Implement image loading from URL
-        // For now, keep the default icon
-        print("📸 Loading profile image from: \(urlString)")
+        print("📸 HomeView: Loading profile image from: \(urlString)")
+        
+        // Use placeholder icon while loading
+        let placeholder = UIImage(systemName: "person.circle.fill")
+        
+        ImageLoader.loadImage(
+            from: urlString,
+            into: profileImageView,
+            placeholder: placeholder
+        )
     }
 }
 
