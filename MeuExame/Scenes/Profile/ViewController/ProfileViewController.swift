@@ -37,6 +37,17 @@ final class ProfileViewController: UIViewController {
     private func setupNavigationBar() {
         title = "Perfil"
         
+        // Ensure navigation bar is visible
+        navigationController?.setNavigationBarHidden(false, animated: false)
+        
+        // Close button (X) for modal presentation
+        let closeButton = UIBarButtonItem(
+            barButtonSystemItem: .close,
+            target: self,
+            action: #selector(closeButtonTapped)
+        )
+        navigationItem.leftBarButtonItem = closeButton
+        
         // Save button
         let saveButton = UIBarButtonItem(
             title: "Salvar",
@@ -66,6 +77,11 @@ final class ProfileViewController: UIViewController {
     }
     
     // MARK: - Actions
+    
+    @objc private func closeButtonTapped() {
+        print("❌ ProfileViewController: Close button tapped")
+        dismiss(animated: true)
+    }
     
     @objc private func saveButtonTapped() {
         let data = profileView.getUserInputData()

@@ -96,7 +96,7 @@ final class HomeView: UIView {
     
     private let pendingExamsCard = StatCardView(
         icon: "exclamationmark.circle.fill",
-        title: "Pendentes",
+        title: "Aguardando resultado",
         value: "0",
         color: .systemOrange
     )
@@ -628,8 +628,10 @@ private class StatCardView: UIView {
         let label = UILabel()
         label.font = .systemFont(ofSize: 12, weight: .medium)
         label.textColor = .white.withAlphaComponent(0.9)
-        label.numberOfLines = 2
+        label.numberOfLines = 0 // Permite múltiplas linhas
+        label.lineBreakMode = .byWordWrapping // Quebra por palavra
         label.textAlignment = .center
+        label.adjustsFontSizeToFitWidth = false // Mantém o tamanho da fonte
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
