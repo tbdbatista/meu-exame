@@ -35,9 +35,10 @@ protocol AddExamPresenterProtocol: PresenterProtocol {
     ///   - medico: Doctor who requested the exam
     ///   - motivo: Reason/complaint
     ///   - data: Date of the exam
+    ///   - scheduledDate: Optional scheduled date for future exams
     ///   - fileData: Optional file data (image/PDF)
     ///   - fileName: Optional file name
-    func didTapSave(nome: String?, local: String?, medico: String?, motivo: String?, data: Date, fileData: Data?, fileName: String?)
+    func didTapSave(nome: String?, local: String?, medico: String?, motivo: String?, data: Date, scheduledDate: Date?, fileData: Data?, fileName: String?)
     
     /// Called when the user taps attach file button
     func didTapAttachFile()

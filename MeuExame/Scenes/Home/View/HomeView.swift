@@ -142,6 +142,36 @@ final class HomeView: UIView {
         return button
     }()
     
+    // MARK: - Scheduled Exams Section
+    
+    private let scheduledExamsLabel: UILabel = {
+        let label = UILabel()
+        label.text = "📅 Próximos Exames Agendados"
+        label.font = .systemFont(ofSize: 18, weight: .semibold)
+        label.textColor = .label
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
+    private let scheduledExamsStackView: UIStackView = {
+        let stack = UIStackView()
+        stack.axis = .vertical
+        stack.spacing = 12
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        return stack
+    }()
+    
+    private let noScheduledExamsLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Nenhum exame agendado"
+        label.font = .systemFont(ofSize: 14, weight: .regular)
+        label.textColor = .tertiaryLabel
+        label.textAlignment = .center
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.isHidden = true
+        return label
+    }()
+    
     // MARK: - Last Exam Info
     
     private let lastExamLabel: UILabel = {
@@ -255,6 +285,11 @@ final class HomeView: UIView {
         contentView.addSubview(addExamButton)
         contentView.addSubview(aboutButton)
         
+        // Add scheduled exams section
+        contentView.addSubview(scheduledExamsLabel)
+        contentView.addSubview(scheduledExamsStackView)
+        contentView.addSubview(noScheduledExamsLabel)
+        
         // Add last exam info
         contentView.addSubview(lastExamLabel)
         contentView.addSubview(lastExamDateLabel)
@@ -325,8 +360,24 @@ final class HomeView: UIView {
             aboutButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             aboutButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             
+            // Scheduled Exams Label
+            scheduledExamsLabel.topAnchor.constraint(equalTo: aboutButton.bottomAnchor, constant: 32),
+            scheduledExamsLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            scheduledExamsLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            
+            // Scheduled Exams Stack
+            scheduledExamsStackView.topAnchor.constraint(equalTo: scheduledExamsLabel.bottomAnchor, constant: 12),
+            scheduledExamsStackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            scheduledExamsStackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            
+            // No Scheduled Exams Label
+            noScheduledExamsLabel.topAnchor.constraint(equalTo: scheduledExamsLabel.bottomAnchor, constant: 12),
+            noScheduledExamsLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            noScheduledExamsLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            noScheduledExamsLabel.heightAnchor.constraint(equalToConstant: 40),
+            
             // Last Exam Label
-            lastExamLabel.topAnchor.constraint(equalTo: aboutButton.bottomAnchor, constant: 32),
+            lastExamLabel.topAnchor.constraint(equalTo: scheduledExamsStackView.bottomAnchor, constant: 32),
             lastExamLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             
             // Last Exam Date
@@ -416,10 +467,120 @@ final class HomeView: UIView {
         }
     }
     
+    /// Updates the scheduled exams display
+    func updateScheduledExams(_ exams: [ExameModel]) {
+        // Clear existing views
+        scheduledExamsStackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
+        
+        if exams.isEmpty {
+            noScheduledExamsLabel.isHidden = false
+            scheduledExamsStackView.isHidden = true
+        } else {
+            noScheduledExamsLabel.isHidden = true
+            scheduledExamsStackView.isHidden = false
+            
+            // Add up to 3 scheduled exams
+            for exam in exams.prefix(3) {
+                let cardView = ScheduledExamCardView(exame: exam)
+                scheduledExamsStackView.addArrangedSubview(cardView)
+            }
+        }
+    }
+    
     private func loadProfileImage(from urlString: String) {
         // TODO: Implement image loading from URL
         // For now, keep the default icon
         print("📸 Loading profile image from: \(urlString)")
+    }
+}
+
+// MARK: - ScheduledExamCardView
+
+private class ScheduledExamCardView: UIView {
+    init(exame: ExameModel) {
+        super.init(frame: .zero)
+        setupUI(exame: exame)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    private func setupUI(exame: ExameModel) {
+        backgroundColor = .systemOrange.withAlphaComponent(0.1)
+        layer.cornerRadius = 12
+        layer.borderWidth = 1
+        layer.borderColor = UIColor.systemOrange.cgColor
+        translatesAutoresizingMaskIntoConstraints = false
+        
+        let iconImageView = UIImageView()
+        iconImageView.image = UIImage(systemName: "calendar.badge.clock")
+        iconImageView.tintColor = .systemOrange
+        iconImageView.contentMode = .scaleAspectFit
+        iconImageView.translatesAutoresizingMaskIntoConstraints = false
+        
+        let nameLabel = UILabel()
+        nameLabel.text = exame.nome
+        nameLabel.font = .systemFont(ofSize: 16, weight: .semibold)
+        nameLabel.textColor = .label
+        nameLabel.translatesAutoresizingMaskIntoConstraints = false
+        
+        let dateLabel = UILabel()
+        if let dataAgendamento = exame.dataAgendamento {
+            let formatter = DateFormatter()
+            formatter.dateStyle = .medium
+            formatter.timeStyle = .short
+            formatter.locale = Locale(identifier: "pt_BR")
+            dateLabel.text = formatter.string(from: dataAgendamento)
+        } else {
+            dateLabel.text = "Data não definida"
+        }
+        dateLabel.font = .systemFont(ofSize: 14, weight: .regular)
+        dateLabel.textColor = .secondaryLabel
+        dateLabel.translatesAutoresizingMaskIntoConstraints = false
+        
+        let daysLabel = UILabel()
+        if let dias = exame.diasAteAgendamento {
+            if dias == 0 {
+                daysLabel.text = "Hoje"
+                daysLabel.textColor = .systemRed
+            } else if dias == 1 {
+                daysLabel.text = "Amanhã"
+                daysLabel.textColor = .systemOrange
+            } else {
+                daysLabel.text = "Em \(dias) dias"
+                daysLabel.textColor = .systemOrange
+            }
+        } else {
+            daysLabel.text = ""
+        }
+        daysLabel.font = .systemFont(ofSize: 12, weight: .medium)
+        daysLabel.translatesAutoresizingMaskIntoConstraints = false
+        
+        addSubview(iconImageView)
+        addSubview(nameLabel)
+        addSubview(dateLabel)
+        addSubview(daysLabel)
+        
+        NSLayoutConstraint.activate([
+            heightAnchor.constraint(equalToConstant: 80),
+            
+            iconImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+            iconImageView.centerYAnchor.constraint(equalTo: centerYAnchor),
+            iconImageView.widthAnchor.constraint(equalToConstant: 40),
+            iconImageView.heightAnchor.constraint(equalToConstant: 40),
+            
+            nameLabel.topAnchor.constraint(equalTo: topAnchor, constant: 12),
+            nameLabel.leadingAnchor.constraint(equalTo: iconImageView.trailingAnchor, constant: 12),
+            nameLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+            
+            dateLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 4),
+            dateLabel.leadingAnchor.constraint(equalTo: iconImageView.trailingAnchor, constant: 12),
+            
+            daysLabel.centerYAnchor.constraint(equalTo: dateLabel.centerYAnchor),
+            daysLabel.leadingAnchor.constraint(equalTo: dateLabel.trailingAnchor, constant: 8),
+            daysLabel.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor, constant: -16),
+        ])
     }
 }
 

@@ -14,6 +14,7 @@ final class FirestoreAdapter {
         static let medicoSolicitante = "medicoSolicitante"
         static let motivoQueixa = "motivoQueixa"
         static let dataCadastro = "dataCadastro"
+        static let dataAgendamento = "dataAgendamento"
         static let urlArquivo = "urlArquivo"
     }
     
@@ -31,6 +32,11 @@ final class FirestoreAdapter {
             Keys.motivoQueixa: exame.motivoQueixa,
             Keys.dataCadastro: Timestamp(date: exame.dataCadastro)
         ]
+        
+        // Optional scheduled date - only include if not nil
+        if let dataAgendamento = exame.dataAgendamento {
+            data[Keys.dataAgendamento] = Timestamp(date: dataAgendamento)
+        }
         
         // Optional URL - only include if not nil
         if let urlArquivo = exame.urlArquivo {
@@ -84,6 +90,16 @@ final class FirestoreAdapter {
             dataCadastro = Date()
         }
         
+        // Extract optional scheduled date
+        let dataAgendamento: Date?
+        if let timestamp = data[Keys.dataAgendamento] as? Timestamp {
+            dataAgendamento = timestamp.dateValue()
+        } else if let date = data[Keys.dataAgendamento] as? Date {
+            dataAgendamento = date
+        } else {
+            dataAgendamento = nil
+        }
+        
         // Extract optional URL
         let urlArquivo = data[Keys.urlArquivo] as? String
         
@@ -94,6 +110,7 @@ final class FirestoreAdapter {
             medicoSolicitante: medicoSolicitante,
             motivoQueixa: motivoQueixa,
             dataCadastro: dataCadastro,
+            dataAgendamento: dataAgendamento,
             urlArquivo: urlArquivo
         )
     }
@@ -135,6 +152,14 @@ final class FirestoreAdapter {
             Keys.motivoQueixa: exame.motivoQueixa,
             Keys.dataCadastro: Timestamp(date: exame.dataCadastro)
         ]
+        
+        // Handle optional scheduled date
+        if let dataAgendamento = exame.dataAgendamento {
+            data[Keys.dataAgendamento] = Timestamp(date: dataAgendamento)
+        } else {
+            // Explicitly remove field if nil
+            data[Keys.dataAgendamento] = FieldValue.delete()
+        }
         
         // Handle optional URL
         if let urlArquivo = exame.urlArquivo {

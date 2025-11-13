@@ -86,6 +86,10 @@ extension HomeViewController: HomeViewProtocol {
         homeView.updateProfile(profile)
     }
     
+    func updateScheduledExams(_ exams: [ExameModel]) {
+        homeView.updateScheduledExams(exams)
+    }
+    
     // MARK: - ViewProtocol (inherited from HomeViewProtocol)
     
     func showLoading() {

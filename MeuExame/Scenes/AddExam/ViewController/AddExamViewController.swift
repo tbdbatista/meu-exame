@@ -43,13 +43,14 @@ final class AddExamViewController: UIViewController {
     }
     
     private func setupActions() {
-        addExamView.onSaveTapped = { [weak self] nome, local, medico, motivo, data, fileData, fileName in
+        addExamView.onSaveTapped = { [weak self] nome, local, medico, motivo, data, scheduledDate, fileData, fileName in
             self?.addExamPresenter?.didTapSave(
                 nome: nome,
                 local: local,
                 medico: medico,
                 motivo: motivo,
                 data: data,
+                scheduledDate: scheduledDate,
                 fileData: fileData,
                 fileName: fileName
             )
