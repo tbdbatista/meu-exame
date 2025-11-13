@@ -96,7 +96,7 @@ protocol HomeRouterProtocol: RouterProtocol {
 /// Exam summary data structure
 struct ExamSummary {
     let totalExams: Int
-    let recentExamsCount: Int
+    let scheduledExamsCount: Int
     let pendingExamsCount: Int
     let lastExamDate: Date?
     
@@ -116,7 +116,7 @@ struct ExamSummary {
     static var empty: ExamSummary {
         return ExamSummary(
             totalExams: 0,
-            recentExamsCount: 0,
+            scheduledExamsCount: 0,
             pendingExamsCount: 0,
             lastExamDate: nil
         )
@@ -126,7 +126,7 @@ struct ExamSummary {
     static var mock: ExamSummary {
         return ExamSummary(
             totalExams: 12,
-            recentExamsCount: 3,
+            scheduledExamsCount: 3,
             pendingExamsCount: 2,
             lastExamDate: Date().addingTimeInterval(-86400 * 7) // 7 days ago
         )

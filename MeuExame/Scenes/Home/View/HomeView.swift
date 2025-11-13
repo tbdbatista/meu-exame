@@ -75,28 +75,26 @@ final class HomeView: UIView {
         let stack = UIStackView()
         stack.axis = .horizontal
         stack.distribution = .fillEqually
+        stack.alignment = .fill // Garante que todas as views tenham a mesma altura
         stack.spacing = 12
         stack.translatesAutoresizingMaskIntoConstraints = false
         return stack
     }()
     
     private let totalExamsCard = StatCardView(
-        icon: "doc.text.fill",
         title: "Total de Exames",
         value: "0",
         color: .systemBlue
     )
     
-    private let recentExamsCard = StatCardView(
-        icon: "clock.fill",
-        title: "Recentes",
+    private let scheduledExamsCard = StatCardView(
+        title: "Agendados",
         value: "0",
         color: .systemGreen
     )
     
     private let pendingExamsCard = StatCardView(
-        icon: "exclamationmark.circle.fill",
-        title: "Pendentes",
+        title: "Aguardando resultado",
         value: "0",
         color: .systemOrange
     )
@@ -277,7 +275,7 @@ final class HomeView: UIView {
         // Add summary cards
         contentView.addSubview(summaryStackView)
         summaryStackView.addArrangedSubview(totalExamsCard)
-        summaryStackView.addArrangedSubview(recentExamsCard)
+        summaryStackView.addArrangedSubview(scheduledExamsCard)
         summaryStackView.addArrangedSubview(pendingExamsCard)
         
         // Add actions
@@ -438,7 +436,7 @@ final class HomeView: UIView {
     /// Updates the exam summary display
     func updateSummary(_ summary: ExamSummary) {
         totalExamsCard.setValue("\(summary.totalExams)")
-        recentExamsCard.setValue("\(summary.recentExamsCount)")
+        scheduledExamsCard.setValue("\(summary.scheduledExamsCount)")
         pendingExamsCard.setValue("\(summary.pendingExamsCount)")
         lastExamDateLabel.text = summary.formattedLastExamDate
         
@@ -616,20 +614,16 @@ private class ScheduledExamCardView: UIView {
 /// Stat card component for displaying statistics
 private class StatCardView: UIView {
     
-    private let iconImageView: UIImageView = {
-        let imageView = UIImageView()
-        imageView.contentMode = .scaleAspectFit
-        imageView.tintColor = .white
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        return imageView
-    }()
-    
     private let titleLabel: UILabel = {
         let label = UILabel()
         label.font = .systemFont(ofSize: 12, weight: .medium)
         label.textColor = .white.withAlphaComponent(0.9)
-        label.numberOfLines = 2
+        label.numberOfLines = 0 // Permite múltiplas linhas
+        label.lineBreakMode = .byWordWrapping // Quebra por palavra
         label.textAlignment = .center
+        label.adjustsFontSizeToFitWidth = false // Mantém o tamanho da fonte
+        label.setContentHuggingPriority(.required, for: .vertical)
+        label.setContentCompressionResistancePriority(.required, for: .vertical)
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -643,7 +637,7 @@ private class StatCardView: UIView {
         return label
     }()
     
-    init(icon: String, title: String, value: String, color: UIColor) {
+    init(title: String, value: String, color: UIColor) {
         super.init(frame: .zero)
         
         backgroundColor = color
@@ -654,28 +648,23 @@ private class StatCardView: UIView {
         layer.shadowOpacity = 0.1
         translatesAutoresizingMaskIntoConstraints = false
         
-        iconImageView.image = UIImage(systemName: icon)
         titleLabel.text = title
         valueLabel.text = value
         
-        addSubview(iconImageView)
-        addSubview(valueLabel)
         addSubview(titleLabel)
+        addSubview(valueLabel)
         
         NSLayoutConstraint.activate([
-            iconImageView.topAnchor.constraint(equalTo: topAnchor, constant: 12),
-            iconImageView.centerXAnchor.constraint(equalTo: centerXAnchor),
-            iconImageView.widthAnchor.constraint(equalToConstant: 24),
-            iconImageView.heightAnchor.constraint(equalToConstant: 24),
-            
-            valueLabel.centerYAnchor.constraint(equalTo: centerYAnchor, constant: 4),
-            valueLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 8),
-            valueLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8),
-            
-            titleLabel.topAnchor.constraint(equalTo: valueLabel.bottomAnchor, constant: 4),
+            // Título no topo
+            titleLabel.topAnchor.constraint(equalTo: topAnchor, constant: 12),
             titleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 8),
             titleLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8),
-            titleLabel.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor, constant: -8),
+            
+            // Valor no centro (abaixo do título)
+            valueLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 8),
+            valueLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 8),
+            valueLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8),
+            valueLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -12),
         ])
     }
     
