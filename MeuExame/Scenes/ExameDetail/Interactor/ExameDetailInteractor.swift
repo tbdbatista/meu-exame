@@ -138,7 +138,6 @@ extension ExameDetailInteractor: ExameDetailInteractorProtocol {
                 medicoSolicitante: exame.medicoSolicitante,
                 motivoQueixa: exame.motivoQueixa,
                 dataCadastro: exame.dataCadastro,
-                dataAgendamento: exame.dataAgendamento,
                 arquivosAnexados: allFiles
             )
             
@@ -166,19 +165,20 @@ extension ExameDetailInteractor: ExameDetailInteractorProtocol {
     }
     
     private func handleNotificationUpdate(oldExame: ExameModel?, newExame: ExameModel) {
-        // Cancel old notification if existed
-        if let oldExame = oldExame, oldExame.dataAgendamento != nil {
+        // Cancel old notification if exam was scheduled for future
+        if let oldExame = oldExame, oldExame.dataCadastro > Date() {
             notificationService.cancelExamNotification(examId: oldExame.id)
         }
         
-        // Schedule new notification if exam has scheduled date in the future
-        if let dataAgendamento = newExame.dataAgendamento, dataAgendamento > Date() {
+        // Schedule new notification if exam is scheduled for future
+        if newExame.dataCadastro > Date() {
             scheduleNotification(for: newExame)
         }
     }
     
     private func scheduleNotification(for exame: ExameModel) {
-        guard let dataAgendamento = exame.dataAgendamento else { return }
+        // Only schedule if exam is in the future
+        guard exame.dataCadastro > Date() else { return }
         
         notificationService.requestAuthorization { [weak self] granted, error in
             if let error = error {
@@ -190,7 +190,7 @@ extension ExameDetailInteractor: ExameDetailInteractorProtocol {
                 self?.notificationService.scheduleExamNotification(
                     examId: exame.id,
                     examName: exame.nome,
-                    scheduledDate: dataAgendamento
+                    scheduledDate: exame.dataCadastro
                 ) { result in
                     switch result {
                     case .success:
@@ -208,8 +208,8 @@ extension ExameDetailInteractor: ExameDetailInteractorProtocol {
     func deleteExam(examId: String) {
         print("🗑️ ExameDetailInteractor: Deletando exame: \(examId)")
         
-        // Cancel notification if exam was scheduled
-        if let originalExame = originalExame, originalExame.dataAgendamento != nil {
+        // Cancel notification if exam was scheduled for future
+        if let originalExame = originalExame, originalExame.dataCadastro > Date() {
             notificationService.cancelExamNotification(examId: examId)
         }
         

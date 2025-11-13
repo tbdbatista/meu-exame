@@ -48,14 +48,14 @@ final class ExamesListViewController: UIViewController {
         )
         navigationItem.rightBarButtonItem = addButton
         
-        // Filter button (optional)
-        // let filterButton = UIBarButtonItem(
-        //     image: UIImage(systemName: "line.3.horizontal.decrease.circle"),
-        //     style: .plain,
-        //     target: self,
-        //     action: #selector(filterButtonTapped)
-        // )
-        // navigationItem.leftBarButtonItem = filterButton
+        // Filter button
+        let filterButton = UIBarButtonItem(
+            image: UIImage(systemName: "line.3.horizontal.decrease.circle"),
+            style: .plain,
+            target: self,
+            action: #selector(filterButtonTapped)
+        )
+        navigationItem.leftBarButtonItem = filterButton
     }
     
     private func setupActions() {
@@ -89,6 +89,52 @@ final class ExamesListViewController: UIViewController {
     
     @objc private func filterButtonTapped() {
         examesListPresenter?.didTapFilter()
+    }
+    
+    func showFilterOptions() {
+        let alert = UIAlertController(
+            title: "Filtrar Exames",
+            message: "Selecione um filtro",
+            preferredStyle: .actionSheet
+        )
+        
+        for filter in ExamFilter.allCases {
+            alert.addAction(UIAlertAction(title: filter.rawValue, style: .default) { [weak self] _ in
+                self?.examesListPresenter?.applyFilter(filter)
+            })
+        }
+        
+        alert.addAction(UIAlertAction(title: "Cancelar", style: .cancel))
+        
+        // For iPad
+        if let popover = alert.popoverPresentationController {
+            popover.barButtonItem = navigationItem.leftBarButtonItem
+        }
+        
+        present(alert, animated: true)
+    }
+    
+    func showSortOptions() {
+        let alert = UIAlertController(
+            title: "Ordenar Exames",
+            message: "Selecione uma ordenação",
+            preferredStyle: .actionSheet
+        )
+        
+        for sort in ExamSort.allCases {
+            alert.addAction(UIAlertAction(title: sort.rawValue, style: .default) { [weak self] _ in
+                self?.examesListPresenter?.applySort(sort)
+            })
+        }
+        
+        alert.addAction(UIAlertAction(title: "Cancelar", style: .cancel))
+        
+        // For iPad
+        if let popover = alert.popoverPresentationController {
+            popover.barButtonItem = navigationItem.leftBarButtonItem
+        }
+        
+        present(alert, animated: true)
     }
     
     @objc private func refreshControlTriggered() {

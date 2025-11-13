@@ -314,29 +314,24 @@ class ScheduledExameTableViewCell: UITableViewCell {
         nomeLabel.text = exame.nome
         localLabel.text = exame.localRealizado
         
-        if let dataAgendamento = exame.dataAgendamento {
-            let formatter = DateFormatter()
-            formatter.dateStyle = .medium
-            formatter.timeStyle = .short
-            formatter.locale = Locale(identifier: "pt_BR")
-            scheduledDateLabel.text = "📅 \(formatter.string(from: dataAgendamento))"
-            
-            if let dias = exame.diasAteAgendamento {
-                if dias == 0 {
-                    daysUntilLabel.text = "(Hoje)"
-                    daysUntilLabel.textColor = .systemRed
-                } else if dias == 1 {
-                    daysUntilLabel.text = "(Amanhã)"
-                    daysUntilLabel.textColor = .systemOrange
-                } else {
-                    daysUntilLabel.text = "(Em \(dias) dias)"
-                    daysUntilLabel.textColor = .tertiaryLabel
-                }
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        formatter.locale = Locale(identifier: "pt_BR")
+        scheduledDateLabel.text = "📅 \(formatter.string(from: exame.dataCadastro))"
+        
+        if let dias = exame.diasAteExame {
+            if dias == 0 {
+                daysUntilLabel.text = "(Hoje)"
+                daysUntilLabel.textColor = .systemRed
+            } else if dias == 1 {
+                daysUntilLabel.text = "(Amanhã)"
+                daysUntilLabel.textColor = .systemOrange
             } else {
-                daysUntilLabel.text = ""
+                daysUntilLabel.text = "(Em \(dias) dias)"
+                daysUntilLabel.textColor = .tertiaryLabel
             }
         } else {
-            scheduledDateLabel.text = ""
             daysUntilLabel.text = ""
         }
     }

@@ -199,9 +199,9 @@ final class FirestoreExamesService: ExamesServiceProtocol {
         
         let now = Timestamp(date: Date())
         
-        collection
-            .whereField("dataAgendamento", isGreaterThan: now)
-            .order(by: "dataAgendamento", descending: false)
+            collection
+                .whereField("dataCadastro", isGreaterThan: now)
+                .order(by: "dataCadastro", descending: false)
             .getDocuments { snapshot, error in
                 if let error = error {
                     print("❌ FirestoreExamesService: Fetch scheduled exams failed - \(error.localizedDescription)")

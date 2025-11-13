@@ -44,16 +44,37 @@ extension ExamesListRouter: ExamesListRouterProtocol {
     }
     
     func navigateToFilter() {
-        print("🧭 ExamesListRouter: Navegar para filtros")
+        print("🧭 ExamesListRouter: Mostrar opções de filtro e ordenação")
         
-        // TODO: Criar tela de filtros quando necessário
+        guard let viewController = viewController,
+              let presenter = viewController as? ExamesListViewController else {
+            return
+        }
+        
         let alert = UIAlertController(
-            title: "Filtros",
-            message: "A funcionalidade de filtros será implementada em breve.",
-            preferredStyle: .alert
+            title: "Filtros e Ordenação",
+            message: nil,
+            preferredStyle: .actionSheet
         )
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-        viewController?.present(alert, animated: true)
+        
+        // Filter options
+        alert.addAction(UIAlertAction(title: "Filtros", style: .default) { _ in
+            presenter.showFilterOptions()
+        })
+        
+        // Sort options
+        alert.addAction(UIAlertAction(title: "Ordenar", style: .default) { _ in
+            presenter.showSortOptions()
+        })
+        
+        alert.addAction(UIAlertAction(title: "Cancelar", style: .cancel))
+        
+        // For iPad
+        if let popover = alert.popoverPresentationController {
+            popover.barButtonItem = viewController.navigationItem.leftBarButtonItem
+        }
+        
+        viewController.present(alert, animated: true)
     }
 }
 

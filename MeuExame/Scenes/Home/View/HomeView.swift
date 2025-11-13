@@ -526,21 +526,17 @@ private class ScheduledExamCardView: UIView {
         nameLabel.translatesAutoresizingMaskIntoConstraints = false
         
         let dateLabel = UILabel()
-        if let dataAgendamento = exame.dataAgendamento {
-            let formatter = DateFormatter()
-            formatter.dateStyle = .medium
-            formatter.timeStyle = .short
-            formatter.locale = Locale(identifier: "pt_BR")
-            dateLabel.text = formatter.string(from: dataAgendamento)
-        } else {
-            dateLabel.text = "Data não definida"
-        }
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        formatter.locale = Locale(identifier: "pt_BR")
+        dateLabel.text = formatter.string(from: exame.dataCadastro)
         dateLabel.font = .systemFont(ofSize: 14, weight: .regular)
         dateLabel.textColor = .secondaryLabel
         dateLabel.translatesAutoresizingMaskIntoConstraints = false
         
         let daysLabel = UILabel()
-        if let dias = exame.diasAteAgendamento {
+        if let dias = exame.diasAteExame {
             if dias == 0 {
                 daysLabel.text = "Hoje"
                 daysLabel.textColor = .systemRed

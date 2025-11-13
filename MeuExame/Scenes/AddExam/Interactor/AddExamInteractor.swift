@@ -91,7 +91,6 @@ extension AddExamInteractor: AddExamInteractorProtocol {
                     medicoSolicitante: exame.medicoSolicitante,
                     motivoQueixa: exame.motivoQueixa,
                     dataCadastro: exame.dataCadastro,
-                    dataAgendamento: exame.dataAgendamento,
                     urlArquivo: downloadURL,
                     nomeArquivo: friendlyFileName // Use exam name + extension
                 )
@@ -113,9 +112,9 @@ extension AddExamInteractor: AddExamInteractorProtocol {
                 print("✅ AddExamInteractor: Exame criado no Firestore")
                 print("📄 AddExamInteractor: URL do arquivo: \(createdExame.urlArquivo ?? "nenhum")")
                 
-                // Schedule notification if exam has scheduled date
-                if let dataAgendamento = createdExame.dataAgendamento, dataAgendamento > Date() {
-                    print("📅 AddExamInteractor: Agendando notificação para \(dataAgendamento)")
+                // Schedule notification if exam is scheduled for future
+                if createdExame.dataCadastro > Date() {
+                    print("📅 AddExamInteractor: Agendando notificação para \(createdExame.dataCadastro)")
                     self?.scheduleNotification(for: createdExame)
                 }
                 
@@ -129,7 +128,8 @@ extension AddExamInteractor: AddExamInteractorProtocol {
     }
     
     private func scheduleNotification(for exame: ExameModel) {
-        guard let dataAgendamento = exame.dataAgendamento else { return }
+        // Only schedule if exam is in the future
+        guard exame.dataCadastro > Date() else { return }
         
         notificationService.requestAuthorization { [weak self] granted, error in
             if let error = error {
@@ -141,7 +141,7 @@ extension AddExamInteractor: AddExamInteractorProtocol {
                 self?.notificationService.scheduleExamNotification(
                     examId: exame.id,
                     examName: exame.nome,
-                    scheduledDate: dataAgendamento
+                    scheduledDate: exame.dataCadastro
                 ) { result in
                     switch result {
                     case .success:
