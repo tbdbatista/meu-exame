@@ -17,11 +17,12 @@ final class HomeRouter {
         
         // Get services
         let exameService = DependencyContainer.shared.makeExamesService()
+        let userService = DependencyContainer.shared.makeUserService()
         
         // Create VIPER components
         let view = HomeViewController()
         let presenter = HomePresenter()
-        let interactor = HomeInteractor(exameService: exameService)
+        let interactor = HomeInteractor(exameService: exameService, userService: userService)
         let router = HomeRouter()
         
         // Connect VIPER components (Dependency Injection)

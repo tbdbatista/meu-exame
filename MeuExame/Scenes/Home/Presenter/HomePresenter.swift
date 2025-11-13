@@ -44,8 +44,9 @@ extension HomePresenter: HomePresenterProtocol {
     
     func viewWillAppear() {
         print("📱 HomePresenter: View will appear")
-        // Refresh data when view appears
+        // Refresh data when view appears (including user profile to get updated photo)
         homeInteractor?.fetchExamSummary()
+        homeInteractor?.fetchUserProfile()
         homeInteractor?.fetchScheduledExams()
     }
     

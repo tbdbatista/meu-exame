@@ -461,9 +461,15 @@ final class HomeView: UIView {
         userNameLabel.text = "Olá, \(profile.displayName)!"
         userEmailLabel.text = profile.email
         
-        // Load profile image if URL exists
-        if let photoURL = profile.photoURL {
+        // Load profile image if URL exists and is not empty
+        if let photoURL = profile.photoURL, !photoURL.isEmpty {
+            print("📸 HomeView: updateProfile - photoURL: \(photoURL)")
             loadProfileImage(from: photoURL)
+        } else {
+            print("⚠️ HomeView: updateProfile - No photoURL, resetting to placeholder")
+            // Reset to default placeholder if no photo URL
+            profileImageView.image = UIImage(systemName: "person.circle.fill")
+            profileImageView.tintColor = .systemGray3
         }
     }
     
@@ -488,9 +494,34 @@ final class HomeView: UIView {
     }
     
     private func loadProfileImage(from urlString: String) {
-        // TODO: Implement image loading from URL
-        // For now, keep the default icon
-        print("📸 Loading profile image from: \(urlString)")
+        print("📸 HomeView: Loading profile image from: \(urlString)")
+        
+        // Use placeholder icon while loading
+        let placeholder = UIImage(systemName: "person.circle.fill")
+        
+        ImageLoader.loadImage(
+            from: urlString,
+            into: profileImageView,
+            placeholder: placeholder
+        ) { [weak self] image in
+            DispatchQueue.main.async {
+                guard let self = self else { return }
+                
+                if let image = image {
+                    print("✅ HomeView: Profile image loaded successfully")
+                    // Clear tint color and background when real image loads
+                    self.profileImageView.tintColor = nil
+                    self.profileImageView.backgroundColor = .clear
+                    self.profileImageView.image = image
+                } else {
+                    print("⚠️ HomeView: Failed to load profile image, keeping placeholder")
+                    // Keep placeholder if load fails
+                    self.profileImageView.image = placeholder
+                    self.profileImageView.tintColor = .systemGray3
+                    self.profileImageView.backgroundColor = .systemGray5
+                }
+            }
+        }
     }
 }
 

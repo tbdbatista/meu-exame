@@ -17,12 +17,18 @@ final class HomeInteractor {
     
     private let authService: AuthServiceProtocol
     private let exameService: ExamesServiceProtocol
+    private let userService: UserServiceProtocol
     
     // MARK: - Initializer
     
-    init(authService: AuthServiceProtocol = FirebaseManager.shared, exameService: ExamesServiceProtocol) {
+    init(
+        authService: AuthServiceProtocol = FirebaseManager.shared,
+        exameService: ExamesServiceProtocol,
+        userService: UserServiceProtocol
+    ) {
         self.authService = authService
         self.exameService = exameService
+        self.userService = userService
         print("🔧 HomeInteractor: Initialized")
     }
 }
@@ -86,29 +92,41 @@ extension HomeInteractor: HomeInteractorProtocol {
     func fetchUserProfile() {
         print("🔄 HomeInteractor: Fetching user profile")
         
-        // Get current user from Firebase Auth
-        guard let currentUserId = authService.currentUserId else {
-            let error = NSError(domain: "HomeInteractor", code: 1, userInfo: [
-                NSLocalizedDescriptionKey: "Usuário não autenticado"
-            ])
-            output?.userProfileDidFail(error: error)
-            return
-        }
-        
-        // Get user email from Firebase Auth
-        if let user = Auth.auth().currentUser {
-            let profile = UserProfile(
-                userId: currentUserId,
-                name: user.displayName,
-                email: user.email ?? "usuário@exemplo.com",
-                photoURL: user.photoURL?.absoluteString,
-                memberSince: user.metadata.creationDate ?? Date()
-            )
-            output?.userProfileDidLoad(profile)
-        } else {
-            // Fallback to mock data
-            let profile = UserProfile.mock(userId: currentUserId)
-            output?.userProfileDidLoad(profile)
+        // Fetch user from Firestore (which includes photoURL)
+        userService.fetchCurrentUser { [weak self] result in
+            switch result {
+            case .success(let userModel):
+                print("✅ HomeInteractor: User profile loaded from Firestore - \(userModel.displayName)")
+                print("📸 HomeInteractor: photoURL from Firestore: \(userModel.photoURL ?? "nil")")
+                
+                // Convert UserModel to UserProfile
+                let profile = UserProfile(
+                    userId: userModel.uid,
+                    name: userModel.nome,
+                    email: userModel.email,
+                    photoURL: userModel.photoURL, // This comes from Firestore
+                    memberSince: userModel.dataCriacao
+                )
+                print("📸 HomeInteractor: profile.photoURL: \(profile.photoURL ?? "nil")")
+                self?.output?.userProfileDidLoad(profile)
+                
+            case .failure(let error):
+                print("❌ HomeInteractor: Failed to fetch user from Firestore - \(error.localizedDescription)")
+                
+                // Fallback to Firebase Auth data if Firestore fails
+                if let authUser = Auth.auth().currentUser {
+                    let profile = UserProfile(
+                        userId: authUser.uid,
+                        name: authUser.displayName,
+                        email: authUser.email ?? "usuário@exemplo.com",
+                        photoURL: authUser.photoURL?.absoluteString,
+                        memberSince: authUser.metadata.creationDate ?? Date()
+                    )
+                    self?.output?.userProfileDidLoad(profile)
+                } else {
+                    self?.output?.userProfileDidFail(error: error)
+                }
+            }
         }
     }
     

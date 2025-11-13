@@ -26,6 +26,12 @@ final class ProfileViewController: UIViewController {
         profilePresenter?.viewDidLoad()
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        // Reload user data when view appears (to get updated photo after returning from other screens)
+        profilePresenter?.viewDidLoad()
+    }
+    
     // MARK: - Setup
     
     private func setupNavigationBar() {
