@@ -87,9 +87,7 @@ extension HomeViewController: HomeViewProtocol {
     }
     
     func updateScheduledExams(_ exams: [ExameModel]) {
-        // TODO: Update HomeView to display scheduled exams
-        // For now, just log them
-        print("📅 HomeViewController: Received \(exams.count) scheduled exams")
+        homeView.updateScheduledExams(exams)
     }
     
     // MARK: - ViewProtocol (inherited from HomeViewProtocol)

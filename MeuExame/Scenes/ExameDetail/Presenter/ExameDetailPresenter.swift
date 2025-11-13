@@ -66,7 +66,7 @@ extension ExameDetailPresenter: ExameDetailPresenterProtocol {
         }
     }
     
-    func didTapSave(nome: String?, local: String?, medico: String?, motivo: String?, data: Date, newFiles: [(Data, String)]) {
+    func didTapSave(nome: String?, local: String?, medico: String?, motivo: String?, data: Date, scheduledDate: Date?, newFiles: [(Data, String)]) {
         print("💾 ExameDetailPresenter: Salvar alterações")
         
         guard let currentExame = currentExame else {
@@ -91,6 +91,7 @@ extension ExameDetailPresenter: ExameDetailPresenterProtocol {
             medicoSolicitante: medico,
             motivoQueixa: motivo,
             dataCadastro: data,
+            dataAgendamento: scheduledDate,
             arquivosAnexados: currentExame.arquivosAnexados  // Keep existing files
         )
         
@@ -136,6 +137,7 @@ extension ExameDetailPresenter: ExameDetailPresenterProtocol {
             medicoSolicitante: currentExame.medicoSolicitante,
             motivoQueixa: currentExame.motivoQueixa,
             dataCadastro: currentExame.dataCadastro,
+            dataAgendamento: currentExame.dataAgendamento,
             arquivosAnexados: files
         )
         

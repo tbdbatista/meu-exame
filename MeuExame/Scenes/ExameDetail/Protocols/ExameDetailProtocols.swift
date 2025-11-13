@@ -32,8 +32,9 @@ protocol ExameDetailPresenterProtocol: PresenterProtocol {
     ///   - medico: Updated doctor
     ///   - motivo: Updated reason
     ///   - data: Updated date
+    ///   - scheduledDate: Optional scheduled date for future exams
     ///   - newFiles: Array of new files to attach (data and name tuples)
-    func didTapSave(nome: String?, local: String?, medico: String?, motivo: String?, data: Date, newFiles: [(Data, String)])
+    func didTapSave(nome: String?, local: String?, medico: String?, motivo: String?, data: Date, scheduledDate: Date?, newFiles: [(Data, String)])
     
     /// Called when the user taps cancel (in edit mode)
     func didTapCancel()
