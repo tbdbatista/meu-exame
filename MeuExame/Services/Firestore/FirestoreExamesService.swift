@@ -188,6 +188,38 @@ final class FirestoreExamesService: ExamesServiceProtocol {
             }
         }
     }
+    
+    func fetchScheduledExams(completion: @escaping (Result<[ExameModel], ExameServiceError>) -> Void) {
+        guard let collection = getExamesCollection() else {
+            completion(.failure(.unauthorized))
+            return
+        }
+        
+        print("📅 FirestoreExamesService: Fetching scheduled exams")
+        
+        let now = Timestamp(date: Date())
+        
+        collection
+            .whereField("dataAgendamento", isGreaterThan: now)
+            .order(by: "dataAgendamento", descending: false)
+            .getDocuments { snapshot, error in
+                if let error = error {
+                    print("❌ FirestoreExamesService: Fetch scheduled exams failed - \(error.localizedDescription)")
+                    completion(.failure(.unknown(error)))
+                    return
+                }
+                
+                guard let documents = snapshot?.documents else {
+                    print("⚠️ FirestoreExamesService: No scheduled exams found")
+                    completion(.success([]))
+                    return
+                }
+                
+                let exames = FirestoreAdapter.fromFirestore(documents)
+                print("✅ FirestoreExamesService: Fetched \(exames.count) scheduled exams")
+                completion(.success(exames))
+            }
+    }
 }
 
 // MARK: - Real-time Updates (Optional Extension)

@@ -36,6 +36,10 @@ protocol ExamesServiceProtocol {
     ///   - query: The search query
     ///   - completion: Completion handler with Result containing filtered exams or error
     func search(query: String, completion: @escaping (Result<[ExameModel], ExameServiceError>) -> Void)
+    
+    /// Fetches all scheduled exams (exams with dataAgendamento in the future)
+    /// - Parameter completion: Completion handler with Result containing array of scheduled exams or error
+    func fetchScheduledExams(completion: @escaping (Result<[ExameModel], ExameServiceError>) -> Void)
 }
 
 /// Error types for Exam Service operations

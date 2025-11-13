@@ -100,11 +100,12 @@ extension ExameDetailRouter {
         // Get services from DependencyContainer
         let exameService = DependencyContainer.shared.makeExamesService()
         let storageService = FirebaseManager.shared // implements StorageServiceProtocol
+        let notificationService = DependencyContainer.shared.makeNotificationService()
         
         // Create components
         let view = ExameDetailViewController()
         let presenter = ExameDetailPresenter()
-        let interactor = ExameDetailInteractor(exameService: exameService, storageService: storageService)
+        let interactor = ExameDetailInteractor(exameService: exameService, storageService: storageService, notificationService: notificationService)
         let router = ExameDetailRouter()
         
         // Configure presenter with exam

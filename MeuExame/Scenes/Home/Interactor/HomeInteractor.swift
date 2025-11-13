@@ -111,5 +111,26 @@ extension HomeInteractor: HomeInteractorProtocol {
             output?.userProfileDidLoad(profile)
         }
     }
+    
+    func fetchScheduledExams() {
+        print("🔄 HomeInteractor: Fetching scheduled exams")
+        
+        exameService.fetchScheduledExams { [weak self] result in
+            switch result {
+            case .success(let exames):
+                print("✅ HomeInteractor: Fetched \(exames.count) scheduled exams")
+                
+                // Limit to next 3 exams
+                let nextExams = Array(exames.prefix(3))
+                self?.output?.scheduledExamsDidLoad(nextExams)
+                
+            case .failure(let error):
+                print("❌ HomeInteractor: Failed to fetch scheduled exams - \(error.localizedDescription)")
+                // Don't fail the whole screen if scheduled exams fail
+                // Just return empty array
+                self?.output?.scheduledExamsDidLoad([])
+            }
+        }
+    }
 }
 

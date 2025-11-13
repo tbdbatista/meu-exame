@@ -49,6 +49,12 @@ final class DependencyContainer {
         return FirestoreUserService()
     }
     
+    /// Creates a NotificationService instance
+    /// - Returns: Configured NotificationServiceProtocol implementation
+    func makeNotificationService() -> NotificationServiceProtocol {
+        return LocalNotificationService()
+    }
+    
     // MARK: - Factory Methods
     
     /// Creates a Login VIPER module with all dependencies

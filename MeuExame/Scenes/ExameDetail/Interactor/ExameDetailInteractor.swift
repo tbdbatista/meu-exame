@@ -14,12 +14,15 @@ final class ExameDetailInteractor {
     weak var output: ExameDetailInteractorOutputProtocol?
     private let exameService: ExamesServiceProtocol
     private let storageService: StorageServiceProtocol
+    private let notificationService: NotificationServiceProtocol
+    private var originalExame: ExameModel?
     
     // MARK: - Initializer
     
-    init(exameService: ExamesServiceProtocol, storageService: StorageServiceProtocol) {
+    init(exameService: ExamesServiceProtocol, storageService: StorageServiceProtocol, notificationService: NotificationServiceProtocol) {
         self.exameService = exameService
         self.storageService = storageService
+        self.notificationService = notificationService
     }
 }
 
@@ -39,6 +42,7 @@ extension ExameDetailInteractor: ExameDetailInteractorProtocol {
             switch result {
             case .success(let exame):
                 print("✅ ExameDetailInteractor: Exame encontrado")
+                self?.originalExame = exame
                 self?.output?.examDidLoad(exame)
                 
             case .failure(let error):
@@ -134,6 +138,7 @@ extension ExameDetailInteractor: ExameDetailInteractorProtocol {
                 medicoSolicitante: exame.medicoSolicitante,
                 motivoQueixa: exame.motivoQueixa,
                 dataCadastro: exame.dataCadastro,
+                dataAgendamento: exame.dataAgendamento,
                 arquivosAnexados: allFiles
             )
             
@@ -146,6 +151,11 @@ extension ExameDetailInteractor: ExameDetailInteractorProtocol {
             switch result {
             case .success:
                 print("✅ ExameDetailInteractor: Exame atualizado no Firestore")
+                
+                // Handle notifications: cancel old, schedule new if needed
+                self?.handleNotificationUpdate(oldExame: self?.originalExame, newExame: exame)
+                self?.originalExame = exame
+                
                 self?.output?.examDidUpdate(exame)
                 
             case .failure(let error):
@@ -155,8 +165,53 @@ extension ExameDetailInteractor: ExameDetailInteractorProtocol {
         }
     }
     
+    private func handleNotificationUpdate(oldExame: ExameModel?, newExame: ExameModel) {
+        // Cancel old notification if existed
+        if let oldExame = oldExame, oldExame.dataAgendamento != nil {
+            notificationService.cancelExamNotification(examId: oldExame.id)
+        }
+        
+        // Schedule new notification if exam has scheduled date in the future
+        if let dataAgendamento = newExame.dataAgendamento, dataAgendamento > Date() {
+            scheduleNotification(for: newExame)
+        }
+    }
+    
+    private func scheduleNotification(for exame: ExameModel) {
+        guard let dataAgendamento = exame.dataAgendamento else { return }
+        
+        notificationService.requestAuthorization { [weak self] granted, error in
+            if let error = error {
+                print("⚠️ ExameDetailInteractor: Erro ao solicitar permissão de notificação: \(error.localizedDescription)")
+                return
+            }
+            
+            if granted {
+                self?.notificationService.scheduleExamNotification(
+                    examId: exame.id,
+                    examName: exame.nome,
+                    scheduledDate: dataAgendamento
+                ) { result in
+                    switch result {
+                    case .success:
+                        print("✅ ExameDetailInteractor: Notificação agendada com sucesso")
+                    case .failure(let error):
+                        print("⚠️ ExameDetailInteractor: Erro ao agendar notificação: \(error.localizedDescription)")
+                    }
+                }
+            } else {
+                print("⚠️ ExameDetailInteractor: Permissão de notificação negada")
+            }
+        }
+    }
+    
     func deleteExam(examId: String) {
         print("🗑️ ExameDetailInteractor: Deletando exame: \(examId)")
+        
+        // Cancel notification if exam was scheduled
+        if let originalExame = originalExame, originalExame.dataAgendamento != nil {
+            notificationService.cancelExamNotification(examId: examId)
+        }
         
         exameService.delete(id: examId) { [weak self] result in
             switch result {

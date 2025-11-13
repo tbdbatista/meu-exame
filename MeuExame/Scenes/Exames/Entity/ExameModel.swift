@@ -41,6 +41,9 @@ struct ExameModel: Codable, Identifiable, Equatable {
     /// Date when the exam was registered in the system
     let dataCadastro: Date
     
+    /// Scheduled date for the exam (optional - only for future/scheduled exams)
+    let dataAgendamento: Date?
+    
     /// Array of attached files (supports multiple files)
     let arquivosAnexados: [AttachedFile]
     
@@ -96,6 +99,27 @@ struct ExameModel: Codable, Identifiable, Equatable {
         return !arquivosAnexados.isEmpty || (urlArquivo != nil && !(urlArquivo?.isEmpty ?? true))
     }
     
+    /// Returns true if the exam is scheduled for a future date
+    var isAgendado: Bool {
+        guard let dataAgendamento = dataAgendamento else { return false }
+        return dataAgendamento > Date()
+    }
+    
+    /// Returns true if the exam is scheduled for today
+    var isAgendadoHoje: Bool {
+        guard let dataAgendamento = dataAgendamento else { return false }
+        let calendar = Calendar.current
+        return calendar.isDateInToday(dataAgendamento)
+    }
+    
+    /// Returns the number of days until the scheduled exam (nil if not scheduled or past)
+    var diasAteAgendamento: Int? {
+        guard let dataAgendamento = dataAgendamento, dataAgendamento > Date() else { return nil }
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.day], from: Date(), to: dataAgendamento)
+        return components.day
+    }
+    
     /// Returns a short summary of the exam for preview
     var resumo: String {
         return "\(nome) - \(localRealizado)"
@@ -111,6 +135,7 @@ struct ExameModel: Codable, Identifiable, Equatable {
     ///   - medicoSolicitante: Requesting doctor's name
     ///   - motivoQueixa: Reason for the exam
     ///   - dataCadastro: Registration date (defaults to current date)
+    ///   - dataAgendamento: Scheduled date for the exam (optional)
     ///   - arquivosAnexados: Array of attached files (supports multiple files)
     ///   - urlArquivo: DEPRECATED - Optional URL to exam file (for backwards compatibility)
     ///   - nomeArquivo: DEPRECATED - Optional file name (for backwards compatibility)
@@ -121,6 +146,7 @@ struct ExameModel: Codable, Identifiable, Equatable {
         medicoSolicitante: String,
         motivoQueixa: String,
         dataCadastro: Date = Date(),
+        dataAgendamento: Date? = nil,
         arquivosAnexados: [AttachedFile] = [],
         urlArquivo: String? = nil,
         nomeArquivo: String? = nil
@@ -131,6 +157,7 @@ struct ExameModel: Codable, Identifiable, Equatable {
         self.medicoSolicitante = medicoSolicitante
         self.motivoQueixa = motivoQueixa
         self.dataCadastro = dataCadastro
+        self.dataAgendamento = dataAgendamento
         self.urlArquivo = urlArquivo
         self.nomeArquivo = nomeArquivo
         
@@ -153,6 +180,7 @@ struct ExameModel: Codable, Identifiable, Equatable {
         case medicoSolicitante = "medico_solicitante"
         case motivoQueixa = "motivo_queixa"
         case dataCadastro = "data_cadastro"
+        case dataAgendamento = "data_agendamento"
         case arquivosAnexados = "arquivos_anexados"
         case urlArquivo = "url_arquivo"
         case nomeArquivo = "nome_arquivo"
@@ -169,6 +197,9 @@ struct ExameModel: Codable, Identifiable, Equatable {
         medicoSolicitante = try container.decode(String.self, forKey: .medicoSolicitante)
         motivoQueixa = try container.decode(String.self, forKey: .motivoQueixa)
         dataCadastro = try container.decode(Date.self, forKey: .dataCadastro)
+        
+        // Decode optional scheduled date
+        dataAgendamento = try? container.decode(Date.self, forKey: .dataAgendamento)
         
         // Decode legacy fields
         urlArquivo = try? container.decode(String.self, forKey: .urlArquivo)

@@ -14,12 +14,14 @@ final class AddExamInteractor {
     weak var output: AddExamInteractorOutputProtocol?
     private let exameService: ExamesServiceProtocol
     private let storageService: StorageServiceProtocol
+    private let notificationService: NotificationServiceProtocol
     
     // MARK: - Initializer
     
-    init(exameService: ExamesServiceProtocol, storageService: StorageServiceProtocol) {
+    init(exameService: ExamesServiceProtocol, storageService: StorageServiceProtocol, notificationService: NotificationServiceProtocol) {
         self.exameService = exameService
         self.storageService = storageService
+        self.notificationService = notificationService
     }
 }
 
@@ -89,6 +91,7 @@ extension AddExamInteractor: AddExamInteractorProtocol {
                     medicoSolicitante: exame.medicoSolicitante,
                     motivoQueixa: exame.motivoQueixa,
                     dataCadastro: exame.dataCadastro,
+                    dataAgendamento: exame.dataAgendamento,
                     urlArquivo: downloadURL,
                     nomeArquivo: friendlyFileName // Use exam name + extension
                 )
@@ -109,11 +112,46 @@ extension AddExamInteractor: AddExamInteractorProtocol {
             case .success(let createdExame):
                 print("✅ AddExamInteractor: Exame criado no Firestore")
                 print("📄 AddExamInteractor: URL do arquivo: \(createdExame.urlArquivo ?? "nenhum")")
+                
+                // Schedule notification if exam has scheduled date
+                if let dataAgendamento = createdExame.dataAgendamento, dataAgendamento > Date() {
+                    print("📅 AddExamInteractor: Agendando notificação para \(dataAgendamento)")
+                    self?.scheduleNotification(for: createdExame)
+                }
+                
                 self?.output?.examDidCreate(createdExame)
                 
             case .failure(let error):
                 print("❌ AddExamInteractor: Erro ao criar exame - \(error.localizedDescription)")
                 self?.output?.examCreateDidFail(error: error)
+            }
+        }
+    }
+    
+    private func scheduleNotification(for exame: ExameModel) {
+        guard let dataAgendamento = exame.dataAgendamento else { return }
+        
+        notificationService.requestAuthorization { [weak self] granted, error in
+            if let error = error {
+                print("⚠️ AddExamInteractor: Erro ao solicitar permissão de notificação: \(error.localizedDescription)")
+                return
+            }
+            
+            if granted {
+                self?.notificationService.scheduleExamNotification(
+                    examId: exame.id,
+                    examName: exame.nome,
+                    scheduledDate: dataAgendamento
+                ) { result in
+                    switch result {
+                    case .success:
+                        print("✅ AddExamInteractor: Notificação agendada com sucesso")
+                    case .failure(let error):
+                        print("⚠️ AddExamInteractor: Erro ao agendar notificação: \(error.localizedDescription)")
+                    }
+                }
+            } else {
+                print("⚠️ AddExamInteractor: Permissão de notificação negada")
             }
         }
     }

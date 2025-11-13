@@ -12,6 +12,10 @@ protocol HomeViewProtocol: ViewProtocol {
     /// Updates the user profile data
     /// - Parameter profile: User profile information
     func updateUserProfile(_ profile: UserProfile)
+    
+    /// Updates the list of upcoming scheduled exams
+    /// - Parameter exams: Array of scheduled exams (limited to next 3)
+    func updateScheduledExams(_ exams: [ExameModel])
 }
 
 /// Protocol for the Home Presenter.
@@ -38,6 +42,9 @@ protocol HomeInteractorProtocol: InteractorProtocol {
     
     /// Fetches the user profile data
     func fetchUserProfile()
+    
+    /// Fetches the next scheduled exams (up to 3)
+    func fetchScheduledExams()
 }
 
 /// Protocol for the Home Interactor's output.
@@ -58,6 +65,14 @@ protocol HomeInteractorOutputProtocol: AnyObject {
     /// Called when user profile fetch fails
     /// - Parameter error: The error that occurred
     func userProfileDidFail(error: Error)
+    
+    /// Called when scheduled exams are successfully fetched
+    /// - Parameter exams: Array of scheduled exams
+    func scheduledExamsDidLoad(_ exams: [ExameModel])
+    
+    /// Called when scheduled exams fetch fails
+    /// - Parameter error: The error that occurred
+    func scheduledExamsDidFail(error: Error)
 }
 
 /// Protocol for the Home Router.
