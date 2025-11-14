@@ -40,8 +40,10 @@ protocol ExameDetailPresenterProtocol: PresenterProtocol {
     func didTapCancel()
     
     /// Called when the user taps to view/download file
-    /// - Parameter url: URL of the file to view
-    func didTapViewFile(url: String)
+    /// - Parameters:
+    ///   - url: URL of the file to view
+    ///   - fileName: Name of the file
+    func didTapViewFile(url: String, fileName: String)
     
     /// Called when the user taps to remove a file
     /// - Parameter index: Index of the file to remove
@@ -120,8 +122,10 @@ protocol ExameDetailRouterProtocol: RouterProtocol {
     func showDeleteConfirmation(onConfirm: @escaping () -> Void)
     
     /// Shows file viewer
-    /// - Parameter fileURL: URL of the file to view
-    func showFileViewer(fileURL: URL)
+    /// - Parameters:
+    ///   - fileURL: URL of the file to view
+    ///   - fileName: Name of the file (optional)
+    func showFileViewer(fileURL: URL, fileName: String?)
     
     /// Shows share sheet
     /// - Parameter items: Items to share

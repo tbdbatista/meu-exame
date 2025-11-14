@@ -14,7 +14,7 @@ final class ExameDetailView: UIView {
     
     var onSaveTapped: ((String?, String?, String?, String?, Date, Bool, [(Data, String)]) -> Void)?
     var onCancelTapped: (() -> Void)?
-    var onViewFileTapped: ((String) -> Void)?  // Pass URL to view specific file
+    var onViewFileTapped: ((String, String) -> Void)?  // Pass URL and fileName to view specific file
     var onAttachFileTapped: (() -> Void)?
     var onRemoveFileTapped: ((Int) -> Void)?  // Pass index to remove specific file
     
@@ -654,7 +654,7 @@ final class ExameDetailView: UIView {
         
         if let exame = currentExame, index < exame.arquivosAnexados.count {
             let file = exame.arquivosAnexados[index]
-            onViewFileTapped?(file.url)
+            onViewFileTapped?(file.url, file.name)
         }
     }
 }
