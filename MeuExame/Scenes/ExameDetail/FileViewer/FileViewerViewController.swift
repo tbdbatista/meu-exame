@@ -192,15 +192,6 @@ final class FileViewerViewController: UIViewController {
         scrollView.addSubview(imageView)
         view.addSubview(scrollView)
         
-        // Calculate image size to fit screen while maintaining aspect ratio
-        let screenSize = view.bounds.size
-        let imageSize = image.size
-        let widthRatio = screenSize.width / imageSize.width
-        let heightRatio = screenSize.height / imageSize.height
-        let scale = min(widthRatio, heightRatio, 1.0) // Don't scale up
-        let scaledWidth = imageSize.width * scale
-        let scaledHeight = imageSize.height * scale
-        
         NSLayoutConstraint.activate([
             scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
@@ -211,12 +202,25 @@ final class FileViewerViewController: UIViewController {
             imageView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
             imageView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
             imageView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
-            imageView.widthAnchor.constraint(equalToConstant: max(scaledWidth, screenSize.width)),
-            imageView.heightAnchor.constraint(equalToConstant: max(scaledHeight, screenSize.height))
+            imageView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
+            imageView.heightAnchor.constraint(equalTo: scrollView.heightAnchor)
         ])
         
-        // Center image initially
-        scrollView.contentSize = CGSize(width: max(scaledWidth, screenSize.width), height: max(scaledHeight, screenSize.height))
+        // Set content size based on image size
+        DispatchQueue.main.async {
+            let imageSize = image.size
+            let scrollSize = scrollView.bounds.size
+            if scrollSize.width > 0 && scrollSize.height > 0 {
+                let widthRatio = scrollSize.width / imageSize.width
+                let heightRatio = scrollSize.height / imageSize.height
+                let scale = min(widthRatio, heightRatio, 1.0)
+                let scaledWidth = imageSize.width * scale
+                let scaledHeight = imageSize.height * scale
+                scrollView.contentSize = CGSize(width: max(scaledWidth, scrollSize.width), height: max(scaledHeight, scrollSize.height))
+            } else {
+                scrollView.contentSize = imageSize
+            }
+        }
         
         activityIndicator.stopAnimating()
     }
