@@ -107,15 +107,15 @@ extension ExameDetailPresenter: ExameDetailPresenterProtocol {
         exameDetailView?.showViewMode()
     }
     
-    func didTapViewFile(url: String) {
-        print("📎 ExameDetailPresenter: Visualizar arquivo: \(url)")
+    func didTapViewFile(url: String, fileName: String) {
+        print("📎 ExameDetailPresenter: Visualizar arquivo: \(url) - \(fileName)")
         
         guard let fileURL = URL(string: url) else {
             view?.showError(title: "Erro", message: "URL do arquivo inválida")
             return
         }
         
-        exameDetailRouter?.showFileViewer(fileURL: fileURL)
+        exameDetailRouter?.showFileViewer(fileURL: fileURL, fileName: fileName)
     }
     
     func didTapRemoveFile(at index: Int) {
@@ -240,7 +240,8 @@ extension ExameDetailPresenter: ExameDetailInteractorOutputProtocol {
     func fileDidDownload(fileURL: URL) {
         print("✅ ExameDetailPresenter: Arquivo baixado: \(fileURL)")
         view?.hideLoading()
-        exameDetailRouter?.showFileViewer(fileURL: fileURL)
+        let fileName = fileURL.lastPathComponent
+        exameDetailRouter?.showFileViewer(fileURL: fileURL, fileName: fileName)
     }
     
     func fileDownloadDidFail(error: Error) {

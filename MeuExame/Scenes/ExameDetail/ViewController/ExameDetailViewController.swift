@@ -75,8 +75,8 @@ final class ExameDetailViewController: UIViewController {
             self?.exameDetailPresenter?.didTapCancel()
         }
         
-        exameDetailView.onViewFileTapped = { [weak self] url in
-            self?.exameDetailPresenter?.didTapViewFile(url: url)
+        exameDetailView.onViewFileTapped = { [weak self] url, fileName in
+            self?.exameDetailPresenter?.didTapViewFile(url: url, fileName: fileName)
         }
         
         exameDetailView.onAttachFileTapped = { [weak self] in

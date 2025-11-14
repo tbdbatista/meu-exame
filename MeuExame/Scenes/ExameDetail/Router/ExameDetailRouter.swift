@@ -1,5 +1,4 @@
 import UIKit
-import QuickLook
 
 /// ExameDetailRouter é o Router da tela de detalhes do exame.
 /// Segue o padrão VIPER, gerenciando navegação e montagem do módulo.
@@ -46,23 +45,26 @@ extension ExameDetailRouter: ExameDetailRouterProtocol {
         viewController?.present(alert, animated: true)
     }
     
-    func showFileViewer(fileURL: URL) {
+    func showFileViewer(fileURL: URL, fileName: String? = nil) {
         print("🧭 ExameDetailRouter: Showing file viewer for: \(fileURL)")
         
-        // For remote URLs, show in Safari
-        if fileURL.scheme == "http" || fileURL.scheme == "https" {
-            UIApplication.shared.open(fileURL)
-        } else {
-            // For local files, use QLPreviewController
-            // TODO: Implement QLPreviewController when file download is implemented
-            let alert = UIAlertController(
-                title: "Visualizar Arquivo",
-                message: "Funcionalidade de visualização será implementada em breve.",
-                preferredStyle: .alert
-            )
-            alert.addAction(UIAlertAction(title: "OK", style: .default))
-            viewController?.present(alert, animated: true)
-        }
+        // Extract file name from URL if not provided
+        let fileDisplayName = fileName ?? fileURL.lastPathComponent
+        
+        // Get storage service from FirebaseManager
+        let storageService = FirebaseManager.shared as? StorageServiceProtocol
+        
+        // Create and present file viewer
+        let fileViewer = FileViewerViewController(
+            fileURL: fileURL,
+            fileName: fileDisplayName,
+            storageService: storageService
+        )
+        
+        let navController = UINavigationController(rootViewController: fileViewer)
+        navController.modalPresentationStyle = .fullScreen
+        
+        viewController?.present(navController, animated: true)
     }
     
     func showShareSheet(items: [Any]) {
