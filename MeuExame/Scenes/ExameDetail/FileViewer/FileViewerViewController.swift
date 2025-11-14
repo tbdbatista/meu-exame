@@ -152,7 +152,7 @@ final class FileViewerViewController: UIViewController {
         // Determine file type by extension (case-insensitive)
         let fileExtension = url.pathExtension.lowercased()
         
-        // Check if URL is remote (never use QuickLook with remote URLs)
+        // Check if URL is remote
         let isRemoteURL = url.scheme == "http" || url.scheme == "https"
         
         // For images, use UIImageView directly (more reliable than QuickLook)
@@ -160,41 +160,35 @@ final class FileViewerViewController: UIViewController {
         if ["jpg", "jpeg", "png", "gif", "bmp", "tiff", "heic", "heif", "webp"].contains(fileExtension) {
             showImageView(url: url)
         } else if fileExtension == "pdf" {
-            // For PDFs: Always use WebView for remote URLs
-            // Only use QuickLook for local files that exist and are not remote
+            // For PDFs: Open remote PDFs in Safari, local PDFs in WebView
             if isRemoteURL {
-                // Remote PDF - always use WebView (WKWebView handles PDFs well)
-                print("📄 FileViewer: Remote PDF detected, using WebView")
-                showWebView(url: url)
+                // Remote PDF - open in Safari (simpler and more reliable)
+                print("📄 FileViewer: Remote PDF detected, opening in Safari")
+                UIApplication.shared.open(url) { [weak self] success in
+                    if !success {
+                        self?.showError(message: "Não foi possível abrir o PDF.")
+                    } else {
+                        // Dismiss viewer since we're opening in Safari
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                            self?.dismiss(animated: true)
+                        }
+                    }
+                }
             } else if isLocal && FileManager.default.fileExists(atPath: url.path) {
-                // Local PDF - try QuickLook, fallback to WebView
-                // CRITICAL: Double-check URL is not remote before calling canPreview
-                guard url.scheme != "http" && url.scheme != "https" else {
-                    print("⚠️ FileViewer: URL scheme indicates remote, using WebView")
-                    showWebView(url: url)
-                    return
-                }
-                
-                // Verify QuickLook can preview (only for local files)
-                if QLPreviewController.canPreview(url as QLPreviewItem) {
-                    showQuickLookPreview(url: url)
-                } else {
-                    // QuickLook can't preview, use WebView
-                    showWebView(url: url)
-                }
-            } else {
-                // File doesn't exist or not local - use WebView
+                // Local PDF - use WebView
                 showWebView(url: url)
+            } else {
+                // File doesn't exist - show error
+                showError(message: "Arquivo não encontrado.")
             }
         } else {
-            // For other types: only use QuickLook if file is local, exists, and is not remote
+            // For other types: use WebView for remote, QuickLook for local (if supported)
             if isRemoteURL {
-                // Remote file - always use WebView
+                // Remote file - use WebView
                 showWebView(url: url)
             } else if isLocal && FileManager.default.fileExists(atPath: url.path) {
-                // CRITICAL: Double-check URL is not remote before calling canPreview
+                // Local file - try QuickLook, fallback to WebView
                 guard url.scheme != "http" && url.scheme != "https" else {
-                    print("⚠️ FileViewer: URL is remote, using WebView")
                     showWebView(url: url)
                     return
                 }
@@ -205,7 +199,7 @@ final class FileViewerViewController: UIViewController {
                     showWebView(url: url)
                 }
             } else {
-                // Remote file or doesn't exist - use WebView
+                // File doesn't exist - use WebView or show error
                 showWebView(url: url)
             }
         }
