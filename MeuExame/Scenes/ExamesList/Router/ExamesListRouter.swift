@@ -28,19 +28,8 @@ extension ExamesListRouter: ExamesListRouterProtocol {
     func navigateToAddExam() {
         print("🧭 ExamesListRouter: Navegar para adicionar exame")
         
-        // TODO: Criar módulo AddExam quando for implementado
-        // let addExamViewController = AddExamRouter.createModule()
-        // let navController = UINavigationController(rootViewController: addExamViewController)
-        // viewController?.present(navController, animated: true)
-        
-        // Placeholder por enquanto
-        let alert = UIAlertController(
-            title: "Cadastrar Exame",
-            message: "A tela de cadastro de exames será implementada em breve.\n\nPor enquanto, use a tab 'Cadastrar' na barra inferior.",
-            preferredStyle: .alert
-        )
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-        viewController?.present(alert, animated: true)
+        let addExamModule = AddExamRouter.createModule()
+        viewController?.present(addExamModule, animated: true)
     }
     
     func navigateToFilter() {

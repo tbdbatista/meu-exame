@@ -69,17 +69,6 @@ final class HomeView: UIView {
         return label
     }()
     
-    /// Botão "+" no canto superior direito do header
-    let addExamHeaderButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setImage(UIImage(systemName: "plus.circle.fill"), for: .normal)
-        button.tintColor = .white
-        button.backgroundColor = .white.withAlphaComponent(0.2)
-        button.layer.cornerRadius = 20
-        button.translatesAutoresizingMaskIntoConstraints = false
-        return button
-    }()
-    
     // MARK: - Summary Cards
     
     private let summaryStackView: UIStackView = {
@@ -282,7 +271,6 @@ final class HomeView: UIView {
         headerView.addSubview(profileImageView)
         headerView.addSubview(userNameLabel)
         headerView.addSubview(userEmailLabel)
-        headerView.addSubview(addExamHeaderButton)
         
         // Add summary cards
         contentView.addSubview(summaryStackView)
@@ -348,12 +336,6 @@ final class HomeView: UIView {
             userEmailLabel.topAnchor.constraint(equalTo: userNameLabel.bottomAnchor, constant: 4),
             userEmailLabel.leadingAnchor.constraint(equalTo: profileImageView.trailingAnchor, constant: 16),
             userEmailLabel.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -20),
-            
-            // Add Exam Header Button
-            addExamHeaderButton.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 50),
-            addExamHeaderButton.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -20),
-            addExamHeaderButton.widthAnchor.constraint(equalToConstant: 40),
-            addExamHeaderButton.heightAnchor.constraint(equalToConstant: 40),
             
             // Summary Stack
             summaryStackView.topAnchor.constraint(equalTo: headerView.bottomAnchor, constant: 20),
