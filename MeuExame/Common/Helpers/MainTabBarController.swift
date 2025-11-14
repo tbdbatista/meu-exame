@@ -43,39 +43,19 @@ final class MainTabBarController: UITabBarController {
         )
         
         // 3. Add Exam Tab (middle button, larger)
-        let addExamVC = createAddExamPlaceholder()
-        addExamVC.tabBarItem = UITabBarItem(
+        // Placeholder VC to hold the tab position
+        let addExamPlaceholder = UIViewController()
+        addExamPlaceholder.tabBarItem = UITabBarItem(
             title: "Cadastrar",
             image: UIImage(systemName: "plus.circle"),
             selectedImage: UIImage(systemName: "plus.circle.fill")
         )
         
         // Set view controllers
-        viewControllers = [homeVC, examListNavController, addExamVC]
-    }
-    
-    // MARK: - Placeholder ViewControllers
-    
-    private func createAddExamPlaceholder() -> UIViewController {
-        let vc = UIViewController()
-        vc.view.backgroundColor = .systemBackground
+        viewControllers = [homeVC, examListNavController, addExamPlaceholder]
         
-        let label = UILabel()
-        label.text = "➕ Cadastrar Exame\n\n(Será implementado em breve)"
-        label.numberOfLines = 0
-        label.textAlignment = .center
-        label.font = .systemFont(ofSize: 18, weight: .medium)
-        label.textColor = .secondaryLabel
-        label.translatesAutoresizingMaskIntoConstraints = false
-        
-        vc.view.addSubview(label)
-        
-        NSLayoutConstraint.activate([
-            label.centerXAnchor.constraint(equalTo: vc.view.centerXAnchor),
-            label.centerYAnchor.constraint(equalTo: vc.view.centerYAnchor),
-        ])
-        
-        return vc
+        // Set delegate to intercept tab selection
+        delegate = self
     }
     
     // MARK: - Public Methods
@@ -85,6 +65,27 @@ final class MainTabBarController: UITabBarController {
         print("🏗️ MainTabBarController: Creating main navigation")
         let tabBar = MainTabBarController()
         return tabBar
+    }
+}
+
+// MARK: - UITabBarControllerDelegate
+
+extension MainTabBarController: UITabBarControllerDelegate {
+    func tabBarController(_ tabBarController: UITabBarController, shouldSelect viewController: UIViewController) -> Bool {
+        // Check if it's the Add Exam tab (index 2)
+        guard let viewControllers = tabBarController.viewControllers,
+              let index = viewControllers.firstIndex(of: viewController),
+              index == 2 else {
+            return true
+        }
+        
+        // Present Add Exam modal
+        print("📝 MainTabBarController: Presenting AddExam modal")
+        let addExamModule = AddExamRouter.createModule()
+        present(addExamModule, animated: true)
+        
+        // Don't actually select the tab
+        return false
     }
 }
 

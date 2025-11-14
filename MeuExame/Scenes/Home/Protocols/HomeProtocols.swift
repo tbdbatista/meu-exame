@@ -12,6 +12,10 @@ protocol HomeViewProtocol: ViewProtocol {
     /// Updates the user profile data
     /// - Parameter profile: User profile information
     func updateUserProfile(_ profile: UserProfile)
+    
+    /// Updates the list of upcoming scheduled exams
+    /// - Parameter exams: Array of scheduled exams (limited to next 3)
+    func updateScheduledExams(_ exams: [ExameModel])
 }
 
 /// Protocol for the Home Presenter.
@@ -38,6 +42,9 @@ protocol HomeInteractorProtocol: InteractorProtocol {
     
     /// Fetches the user profile data
     func fetchUserProfile()
+    
+    /// Fetches the next scheduled exams (up to 3)
+    func fetchScheduledExams()
 }
 
 /// Protocol for the Home Interactor's output.
@@ -58,6 +65,14 @@ protocol HomeInteractorOutputProtocol: AnyObject {
     /// Called when user profile fetch fails
     /// - Parameter error: The error that occurred
     func userProfileDidFail(error: Error)
+    
+    /// Called when scheduled exams are successfully fetched
+    /// - Parameter exams: Array of scheduled exams
+    func scheduledExamsDidLoad(_ exams: [ExameModel])
+    
+    /// Called when scheduled exams fetch fails
+    /// - Parameter error: The error that occurred
+    func scheduledExamsDidFail(error: Error)
 }
 
 /// Protocol for the Home Router.
@@ -81,7 +96,7 @@ protocol HomeRouterProtocol: RouterProtocol {
 /// Exam summary data structure
 struct ExamSummary {
     let totalExams: Int
-    let recentExamsCount: Int
+    let scheduledExamsCount: Int
     let pendingExamsCount: Int
     let lastExamDate: Date?
     
@@ -101,7 +116,7 @@ struct ExamSummary {
     static var empty: ExamSummary {
         return ExamSummary(
             totalExams: 0,
-            recentExamsCount: 0,
+            scheduledExamsCount: 0,
             pendingExamsCount: 0,
             lastExamDate: nil
         )
@@ -111,7 +126,7 @@ struct ExamSummary {
     static var mock: ExamSummary {
         return ExamSummary(
             totalExams: 12,
-            recentExamsCount: 3,
+            scheduledExamsCount: 3,
             pendingExamsCount: 2,
             lastExamDate: Date().addingTimeInterval(-86400 * 7) // 7 days ago
         )
