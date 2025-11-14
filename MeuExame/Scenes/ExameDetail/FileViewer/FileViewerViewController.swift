@@ -152,15 +152,18 @@ final class FileViewerViewController: UIViewController {
         // Determine file type by extension (case-insensitive)
         let fileExtension = url.pathExtension.lowercased()
         
+        // Check if URL is remote (never use QuickLook with remote URLs)
+        let isRemoteURL = url.scheme == "http" || url.scheme == "https"
+        
         // For images, use UIImageView directly (more reliable than QuickLook)
         // WEBP support added - UIImage supports WEBP natively on iOS 14+
         if ["jpg", "jpeg", "png", "gif", "bmp", "tiff", "heic", "heif", "webp"].contains(fileExtension) {
             showImageView(url: url)
         } else if fileExtension == "pdf" {
-            // For PDFs: only use QuickLook if file is local and exists
-            // Always use WebView for remote PDFs or if QuickLook is not available
-            if isLocal && FileManager.default.fileExists(atPath: url.path) {
-                // Verify QuickLook can preview before using it
+            // For PDFs: only use QuickLook if file is local, exists, and is not a remote URL
+            // Always use WebView for remote PDFs
+            if !isRemoteURL && isLocal && FileManager.default.fileExists(atPath: url.path) {
+                // Verify QuickLook can preview before using it (only for local files)
                 if QLPreviewController.canPreview(url as QLPreviewItem) {
                     showQuickLookPreview(url: url)
                 } else {
@@ -172,8 +175,8 @@ final class FileViewerViewController: UIViewController {
                 showWebView(url: url)
             }
         } else {
-            // For other types: only use QuickLook if file is local, exists, and is supported
-            if isLocal && FileManager.default.fileExists(atPath: url.path) {
+            // For other types: only use QuickLook if file is local, exists, and is not remote
+            if !isRemoteURL && isLocal && FileManager.default.fileExists(atPath: url.path) {
                 if QLPreviewController.canPreview(url as QLPreviewItem) {
                     showQuickLookPreview(url: url)
                 } else {
@@ -249,9 +252,23 @@ final class FileViewerViewController: UIViewController {
     }
     
     private func showQuickLookPreview(url: URL) {
-        // Verify file exists before trying to preview
+        // CRITICAL: Never use QuickLook with remote URLs
+        guard url.scheme != "http" && url.scheme != "https" else {
+            print("⚠️ FileViewer: Cannot use QuickLook with remote URL, using WebView instead")
+            showWebView(url: url)
+            return
+        }
+        
+        // Verify file exists and is local before trying to preview
         guard FileManager.default.fileExists(atPath: url.path) else {
             print("⚠️ FileViewer: File does not exist at path: \(url.path)")
+            showWebView(url: url)
+            return
+        }
+        
+        // Double-check that canPreview won't crash (should never happen with local files, but safety check)
+        guard url.scheme == "file" || url.scheme == nil else {
+            print("⚠️ FileViewer: URL scheme is not file://, using WebView instead")
             showWebView(url: url)
             return
         }
@@ -343,8 +360,19 @@ extension FileViewerViewController: QLPreviewControllerDataSource {
     }
     
     func previewController(_ controller: QLPreviewController, previewItemAt index: Int) -> QLPreviewItem {
-        let urlToPreview: URL = localFileURL ?? fileURL
-        return urlToPreview as QLPreviewItem
+        // Always use localFileURL if available, never return remote URL
+        guard let localURL = localFileURL else {
+            // This should never happen if showQuickLookPreview was called correctly
+            // But if it does, return fileURL only if it's local
+            if fileURL.scheme != "http" && fileURL.scheme != "https" {
+                return fileURL as QLPreviewItem
+            } else {
+                // Fallback: return a dummy URL (should never reach here)
+                let tempDir = FileManager.default.temporaryDirectory
+                return tempDir.appendingPathComponent("dummy.pdf") as QLPreviewItem
+            }
+        }
+        return localURL as QLPreviewItem
     }
 }
 
