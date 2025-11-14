@@ -148,22 +148,24 @@ final class FileViewerViewController: UIViewController {
     }
     
     private func showFile(url: URL) {
-        // Determine file type by extension
+        // Determine file type by extension (case-insensitive)
         let fileExtension = url.pathExtension.lowercased()
         
         // For images, use UIImageView directly (more reliable than QuickLook)
-        if ["jpg", "jpeg", "png", "gif", "bmp", "tiff", "heic", "heif"].contains(fileExtension) {
+        // WEBP support added - UIImage supports WEBP natively on iOS 14+
+        if ["jpg", "jpeg", "png", "gif", "bmp", "tiff", "heic", "heif", "webp"].contains(fileExtension) {
             showImageView(url: url)
         } else if fileExtension == "pdf" {
             // For PDFs, try QuickLook first, fallback to WebView
-            if QLPreviewController.canPreview(url as QLPreviewItem) {
+            // Only use QuickLook if file is local
+            if FileManager.default.fileExists(atPath: url.path) && QLPreviewController.canPreview(url as QLPreviewItem) {
                 showQuickLookPreview(url: url)
             } else {
                 showWebView(url: url)
             }
         } else {
-            // For other types, try QuickLook, fallback to WebView
-            if QLPreviewController.canPreview(url as QLPreviewItem) {
+            // For other types, only use QuickLook if file is local and supported
+            if FileManager.default.fileExists(atPath: url.path) && QLPreviewController.canPreview(url as QLPreviewItem) {
                 showQuickLookPreview(url: url)
             } else {
                 showWebView(url: url)
@@ -172,9 +174,17 @@ final class FileViewerViewController: UIViewController {
     }
     
     private func showImageView(url: URL) {
-        guard let imageData = try? Data(contentsOf: url),
-              let image = UIImage(data: imageData) else {
+        // Load image data
+        guard let imageData = try? Data(contentsOf: url) else {
             showError(message: "Não foi possível carregar a imagem.")
+            return
+        }
+        
+        // Create image from data (UIImage supports WEBP natively on iOS 14+)
+        guard let image = UIImage(data: imageData) else {
+            // If UIImage can't load it, try WebView as fallback
+            print("⚠️ FileViewer: UIImage couldn't load image, trying WebView")
+            showWebView(url: url)
             return
         }
         
