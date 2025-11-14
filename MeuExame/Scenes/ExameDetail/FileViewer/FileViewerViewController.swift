@@ -148,16 +148,87 @@ final class FileViewerViewController: UIViewController {
     }
     
     private func showFile(url: URL) {
-        // Check if QuickLook can preview this file type
-        if QLPreviewController.canPreview(url as QLPreviewItem) {
-            showQuickLookPreview(url: url)
+        // Determine file type by extension
+        let fileExtension = url.pathExtension.lowercased()
+        
+        // For images, use UIImageView directly (more reliable than QuickLook)
+        if ["jpg", "jpeg", "png", "gif", "bmp", "tiff", "heic", "heif"].contains(fileExtension) {
+            showImageView(url: url)
+        } else if fileExtension == "pdf" {
+            // For PDFs, try QuickLook first, fallback to WebView
+            if QLPreviewController.canPreview(url as QLPreviewItem) {
+                showQuickLookPreview(url: url)
+            } else {
+                showWebView(url: url)
+            }
         } else {
-            // Fallback to WKWebView for other file types
-            showWebView(url: url)
+            // For other types, try QuickLook, fallback to WebView
+            if QLPreviewController.canPreview(url as QLPreviewItem) {
+                showQuickLookPreview(url: url)
+            } else {
+                showWebView(url: url)
+            }
         }
     }
     
+    private func showImageView(url: URL) {
+        guard let imageData = try? Data(contentsOf: url),
+              let image = UIImage(data: imageData) else {
+            showError(message: "Não foi possível carregar a imagem.")
+            return
+        }
+        
+        let scrollView = UIScrollView()
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.minimumZoomScale = 0.1
+        scrollView.maximumZoomScale = 3.0
+        scrollView.delegate = self
+        scrollView.showsVerticalScrollIndicator = true
+        scrollView.showsHorizontalScrollIndicator = true
+        
+        let imageView = UIImageView(image: image)
+        imageView.contentMode = .scaleAspectFit
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.addSubview(imageView)
+        view.addSubview(scrollView)
+        
+        // Calculate image size to fit screen while maintaining aspect ratio
+        let screenSize = view.bounds.size
+        let imageSize = image.size
+        let widthRatio = screenSize.width / imageSize.width
+        let heightRatio = screenSize.height / imageSize.height
+        let scale = min(widthRatio, heightRatio, 1.0) // Don't scale up
+        let scaledWidth = imageSize.width * scale
+        let scaledHeight = imageSize.height * scale
+        
+        NSLayoutConstraint.activate([
+            scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            
+            imageView.topAnchor.constraint(equalTo: scrollView.topAnchor),
+            imageView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
+            imageView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
+            imageView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
+            imageView.widthAnchor.constraint(equalToConstant: max(scaledWidth, screenSize.width)),
+            imageView.heightAnchor.constraint(equalToConstant: max(scaledHeight, screenSize.height))
+        ])
+        
+        // Center image initially
+        scrollView.contentSize = CGSize(width: max(scaledWidth, screenSize.width), height: max(scaledHeight, screenSize.height))
+        
+        activityIndicator.stopAnimating()
+    }
+    
     private func showQuickLookPreview(url: URL) {
+        // Verify file exists before trying to preview
+        guard FileManager.default.fileExists(atPath: url.path) else {
+            print("⚠️ FileViewer: File does not exist at path: \(url.path)")
+            showWebView(url: url)
+            return
+        }
+        
         let previewController = QLPreviewController()
         previewController.dataSource = self
         previewController.delegate = self
@@ -255,6 +326,26 @@ extension FileViewerViewController: QLPreviewControllerDataSource {
 extension FileViewerViewController: QLPreviewControllerDelegate {
     func previewControllerWillDismiss(_ controller: QLPreviewController) {
         cleanupTemporaryFile()
+    }
+    
+    func previewController(_ controller: QLPreviewController, failedToLoadPreviewItem item: QLPreviewItem, withError error: Error) {
+        print("❌ FileViewer: QuickLook failed to load preview: \(error.localizedDescription)")
+        // Fallback to WebView if QuickLook fails
+        if let url = item.previewItemURL {
+            DispatchQueue.main.async { [weak self] in
+                controller.view.removeFromSuperview()
+                controller.removeFromParent()
+                self?.showWebView(url: url)
+            }
+        }
+    }
+}
+
+// MARK: - UIScrollViewDelegate
+
+extension FileViewerViewController: UIScrollViewDelegate {
+    func viewForZooming(in scrollView: UIScrollView) -> UIView? {
+        return scrollView.subviews.first { $0 is UIImageView }
     }
 }
 
