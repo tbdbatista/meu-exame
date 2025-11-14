@@ -51,6 +51,12 @@ final class HomeViewController: UIViewController {
     private func setupActions() {
         homeView.addExamButton.addTarget(self, action: #selector(addExamButtonTapped), for: .touchUpInside)
         homeView.aboutButton.addTarget(self, action: #selector(aboutButtonTapped), for: .touchUpInside)
+        homeView.addExamHeaderButton.addTarget(self, action: #selector(addExamButtonTapped), for: .touchUpInside)
+        
+        // Configure empty state CTA button closure
+        homeView.onAddExamTapped = { [weak self] in
+            self?.addExamButtonTapped()
+        }
         
         // Profile image tap gesture
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(profileImageTapped))

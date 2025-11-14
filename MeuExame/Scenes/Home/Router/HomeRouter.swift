@@ -59,14 +59,8 @@ extension HomeRouter: HomeRouterProtocol {
     func navigateToAddExam() {
         print("🧭 HomeRouter: Navigating to Add Exam")
         
-        // TODO: Navigate to Add Exam screen (será implementado)
-        let alert = UIAlertController(
-            title: "Cadastrar Exame",
-            message: "A tela de cadastro de exames será implementada em breve.",
-            preferredStyle: .alert
-        )
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-        viewController?.present(alert, animated: true)
+        let addExamModule = AddExamRouter.createModule()
+        viewController?.present(addExamModule, animated: true)
     }
     
     func navigateToAbout() {
