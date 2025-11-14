@@ -326,7 +326,16 @@ final class FileViewerViewController: UIViewController {
             webView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
         
-        webView.loadFileURL(url, allowingReadAccessTo: url.deletingLastPathComponent())
+        // Check if URL is remote or local
+        if url.scheme == "http" || url.scheme == "https" {
+            // Remote URL - load directly
+            let request = URLRequest(url: url)
+            webView.load(request)
+        } else {
+            // Local file - load from file system
+            webView.loadFileURL(url, allowingReadAccessTo: url.deletingLastPathComponent())
+        }
+        
         activityIndicator.stopAnimating()
     }
     
