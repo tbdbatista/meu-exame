@@ -160,10 +160,22 @@ final class FileViewerViewController: UIViewController {
         if ["jpg", "jpeg", "png", "gif", "bmp", "tiff", "heic", "heif", "webp"].contains(fileExtension) {
             showImageView(url: url)
         } else if fileExtension == "pdf" {
-            // For PDFs: only use QuickLook if file is local, exists, and is not a remote URL
-            // Always use WebView for remote PDFs
-            if !isRemoteURL && isLocal && FileManager.default.fileExists(atPath: url.path) {
-                // Verify QuickLook can preview before using it (only for local files)
+            // For PDFs: Always use WebView for remote URLs
+            // Only use QuickLook for local files that exist and are not remote
+            if isRemoteURL {
+                // Remote PDF - always use WebView (WKWebView handles PDFs well)
+                print("📄 FileViewer: Remote PDF detected, using WebView")
+                showWebView(url: url)
+            } else if isLocal && FileManager.default.fileExists(atPath: url.path) {
+                // Local PDF - try QuickLook, fallback to WebView
+                // CRITICAL: Double-check URL is not remote before calling canPreview
+                guard url.scheme != "http" && url.scheme != "https" else {
+                    print("⚠️ FileViewer: URL scheme indicates remote, using WebView")
+                    showWebView(url: url)
+                    return
+                }
+                
+                // Verify QuickLook can preview (only for local files)
                 if QLPreviewController.canPreview(url as QLPreviewItem) {
                     showQuickLookPreview(url: url)
                 } else {
@@ -171,12 +183,22 @@ final class FileViewerViewController: UIViewController {
                     showWebView(url: url)
                 }
             } else {
-                // Remote PDF or file doesn't exist - use WebView
+                // File doesn't exist or not local - use WebView
                 showWebView(url: url)
             }
         } else {
             // For other types: only use QuickLook if file is local, exists, and is not remote
-            if !isRemoteURL && isLocal && FileManager.default.fileExists(atPath: url.path) {
+            if isRemoteURL {
+                // Remote file - always use WebView
+                showWebView(url: url)
+            } else if isLocal && FileManager.default.fileExists(atPath: url.path) {
+                // CRITICAL: Double-check URL is not remote before calling canPreview
+                guard url.scheme != "http" && url.scheme != "https" else {
+                    print("⚠️ FileViewer: URL is remote, using WebView")
+                    showWebView(url: url)
+                    return
+                }
+                
                 if QLPreviewController.canPreview(url as QLPreviewItem) {
                     showQuickLookPreview(url: url)
                 } else {
