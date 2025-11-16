@@ -39,12 +39,15 @@ extension HomePresenter: HomePresenterProtocol {
         homeView?.showLoading()
         homeInteractor?.fetchExamSummary()
         homeInteractor?.fetchUserProfile()
+        homeInteractor?.fetchScheduledExams()
     }
     
     func viewWillAppear() {
         print("📱 HomePresenter: View will appear")
-        // Refresh data when view appears
+        // Refresh data when view appears (including user profile to get updated photo)
         homeInteractor?.fetchExamSummary()
+        homeInteractor?.fetchUserProfile()
+        homeInteractor?.fetchScheduledExams()
     }
     
     func viewDidDisappear() {
@@ -71,6 +74,7 @@ extension HomePresenter: HomePresenterProtocol {
         homeView?.showLoading()
         homeInteractor?.fetchExamSummary()
         homeInteractor?.fetchUserProfile()
+        homeInteractor?.fetchScheduledExams()
     }
 }
 
@@ -101,6 +105,17 @@ extension HomePresenter: HomeInteractorOutputProtocol {
         print("❌ HomePresenter: User profile failed - \(error.localizedDescription)")
         // Não mostra erro para profile, apenas usa dados padrão
         // A view já tem valores default
+    }
+    
+    func scheduledExamsDidLoad(_ exams: [ExameModel]) {
+        print("✅ HomePresenter: Scheduled exams loaded - \(exams.count) exams")
+        homeView?.updateScheduledExams(exams)
+    }
+    
+    func scheduledExamsDidFail(error: Error) {
+        print("❌ HomePresenter: Scheduled exams failed - \(error.localizedDescription)")
+        // Don't show error, just show empty list
+        homeView?.updateScheduledExams([])
     }
 }
 

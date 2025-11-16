@@ -1,5 +1,21 @@
 import Foundation
 
+/// Filter options for exams
+enum ExamFilter: String, CaseIterable {
+    case all = "Todos"
+    case agendado = "Agendados"
+    case realizado = "Realizados"
+    case resultadoPendente = "Resultado Pendente"
+}
+
+/// Sort options for exams
+enum ExamSort: String, CaseIterable {
+    case nameAscending = "Nome (A-Z)"
+    case nameDescending = "Nome (Z-A)"
+    case dateAscending = "Data (Mais Antigo)"
+    case dateDescending = "Data (Mais Recente)"
+}
+
 /// ExamesListPresenter é o Presenter da tela de listagem de exames.
 /// Segue o padrão VIPER, mediando a comunicação entre View, Interactor e Router.
 final class ExamesListPresenter {
@@ -15,6 +31,8 @@ final class ExamesListPresenter {
     private var allExames: [ExameModel] = []
     private var filteredExames: [ExameModel] = []
     private var isSearching: Bool = false
+    private var currentFilter: ExamFilter = .all
+    private var currentSort: ExamSort = .dateDescending
     
     // MARK: - Private Helpers
     
@@ -79,12 +97,52 @@ extension ExamesListPresenter: ExamesListPresenterProtocol {
     func didCancelSearch() {
         print("📋 ExamesListPresenter: Cancelar busca")
         isSearching = false
+        applyFiltersAndSort()
+    }
+    
+    func applyFilter(_ filter: ExamFilter) {
+        currentFilter = filter
+        applyFiltersAndSort()
+    }
+    
+    func applySort(_ sort: ExamSort) {
+        currentSort = sort
+        applyFiltersAndSort()
+    }
+    
+    private func applyFiltersAndSort() {
+        var result = allExames
         
-        if allExames.isEmpty {
-            examesListView?.showEmptyState("Nenhum exame cadastrado")
+        // Apply filter
+        switch currentFilter {
+        case .all:
+            break // No filter
+        case .agendado:
+            result = result.filter { $0.isAgendado }
+        case .realizado:
+            result = result.filter { $0.isRealizado }
+        case .resultadoPendente:
+            result = result.filter { $0.isResultadoPendente }
+        }
+        
+        // Apply sort
+        switch currentSort {
+        case .nameAscending:
+            result.sort { $0.nome.localizedCaseInsensitiveCompare($1.nome) == .orderedAscending }
+        case .nameDescending:
+            result.sort { $0.nome.localizedCaseInsensitiveCompare($1.nome) == .orderedDescending }
+        case .dateAscending:
+            result.sort { $0.dataCadastro < $1.dataCadastro }
+        case .dateDescending:
+            result.sort { $0.dataCadastro > $1.dataCadastro }
+        }
+        
+        if result.isEmpty {
+            let message = currentFilter == .all ? "Nenhum exame cadastrado" : "Nenhum exame encontrado com o filtro selecionado"
+            examesListView?.showEmptyState(message)
         } else {
             examesListView?.hideEmptyState()
-            examesListView?.updateExames(allExames)
+            examesListView?.updateExames(result)
         }
     }
     
@@ -102,13 +160,7 @@ extension ExamesListPresenter: ExamesListInteractorOutputProtocol {
         view?.hideLoading()
         
         allExames = exams
-        
-        if exams.isEmpty {
-            examesListView?.showEmptyState("Nenhum exame cadastrado")
-        } else {
-            examesListView?.hideEmptyState()
-            examesListView?.updateExames(exams)
-        }
+        applyFiltersAndSort()
     }
     
     func examesDidFail(error: Error) {

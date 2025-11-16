@@ -35,27 +35,23 @@ final class DependencyContainer {
         self.firebaseManager = firebaseManager
     }
     
-    // MARK: - Factory Methods
+    // MARK: - Services
     
-    /// Creates a Login VIPER module with all dependencies
-    /// - Returns: Configured Login view controller
-    func makeLoginModule() -> UIViewController {
-        // TODO: Implement when Login module is created
-        // let view = LoginViewController()
-        // let presenter = LoginPresenter()
-        // let interactor = LoginInteractor(firebaseAuth: firebaseManager as? FirebaseAuthenticationService)
-        // let router = LoginRouter()
-        // 
-        // view.presenter = presenter
-        // presenter.view = view
-        // presenter.interactor = interactor
-        // presenter.router = router
-        // interactor.output = presenter
-        // router.viewController = view
-        //
-        // return view
-        
-        return UIViewController()
+    /// Creates an ExamesService instance
+    /// - Returns: Configured ExamesServiceProtocol implementation
+    func makeExamesService() -> ExamesServiceProtocol {
+        return FirestoreExamesService()
+    }
+    
+    /// Creates a UserService instance
+    /// - Returns: Configured UserServiceProtocol implementation
+    func makeUserService() -> UserServiceProtocol {
+        return FirestoreUserService()
+    }
+    
+    /// Creates a NotificationService instance
+    /// - Returns: Configured NotificationServiceProtocol implementation
+    func makeNotificationService() -> NotificationServiceProtocol {
+        return LocalNotificationService()
     }
 }
-

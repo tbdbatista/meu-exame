@@ -16,12 +16,19 @@ final class HomeInteractor {
     // MARK: - Dependencies
     
     private let authService: AuthServiceProtocol
-    // TODO: Add FirestoreService for exam data
+    private let exameService: ExamesServiceProtocol
+    private let userService: UserServiceProtocol
     
     // MARK: - Initializer
     
-    init(authService: AuthServiceProtocol = FirebaseManager.shared) {
+    init(
+        authService: AuthServiceProtocol = FirebaseManager.shared,
+        exameService: ExamesServiceProtocol,
+        userService: UserServiceProtocol
+    ) {
         self.authService = authService
+        self.exameService = exameService
+        self.userService = userService
         print("🔧 HomeInteractor: Initialized")
     }
 }
@@ -32,41 +39,114 @@ extension HomeInteractor: HomeInteractorProtocol {
     func fetchExamSummary() {
         print("🔄 HomeInteractor: Fetching exam summary")
         
-        // TODO: Implement actual Firestore fetch
-        // For now, use mock data
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-            // Check if user has exams (mock)
-            let summary = ExamSummary.empty // or .mock for testing
-            self?.output?.examSummaryDidLoad(summary)
+        // Fetch exams from Firestore
+        exameService.fetch { [weak self] result in
+            switch result {
+            case .success(let exames):
+                print("✅ HomeInteractor: Fetched \(exames.count) exams")
+                
+                // Calculate summary statistics
+                let summary = self?.calculateSummary(from: exames) ?? ExamSummary.empty
+                self?.output?.examSummaryDidLoad(summary)
+                
+            case .failure(let error):
+                print("❌ HomeInteractor: Failed to fetch exams - \(error.localizedDescription)")
+                
+                // If error, show empty summary (user might have no exams)
+                // Only report error if it's not a "no exams" situation
+                if case ExameServiceError.notFound = error {
+                    // No exams found - this is valid, show empty state
+                    self?.output?.examSummaryDidLoad(ExamSummary.empty)
+                } else {
+                    // Real error
+                    self?.output?.examSummaryDidFail(error: error)
+                }
+            }
         }
+    }
+    
+    // MARK: - Private Helpers
+    
+    /// Calculates exam summary statistics from a list of exams
+    private func calculateSummary(from exames: [ExameModel]) -> ExamSummary {
+        let totalExams = exames.count
+        
+        // Calculate scheduled exams (future dates)
+        let scheduledExams = exames.filter { $0.isAgendado }
+        
+        // Calculate "pending" exams (exams without files - awaiting results)
+        let pendingExams = exames.filter { !$0.temArquivo }
+        
+        // Get last exam date
+        let lastExamDate = exames.map { $0.dataCadastro }.max()
+        
+        return ExamSummary(
+            totalExams: totalExams,
+            scheduledExamsCount: scheduledExams.count,
+            pendingExamsCount: pendingExams.count,
+            lastExamDate: lastExamDate
+        )
     }
     
     func fetchUserProfile() {
         print("🔄 HomeInteractor: Fetching user profile")
         
-        // Get current user from Firebase Auth
-        guard let currentUserId = authService.currentUserId else {
-            let error = NSError(domain: "HomeInteractor", code: 1, userInfo: [
-                NSLocalizedDescriptionKey: "Usuário não autenticado"
-            ])
-            output?.userProfileDidFail(error: error)
-            return
+        // Fetch user from Firestore (which includes photoURL)
+        userService.fetchCurrentUser { [weak self] result in
+            switch result {
+            case .success(let userModel):
+                print("✅ HomeInteractor: User profile loaded from Firestore - \(userModel.displayName)")
+                print("📸 HomeInteractor: photoURL from Firestore: \(userModel.photoURL ?? "nil")")
+                
+                // Convert UserModel to UserProfile
+                let profile = UserProfile(
+                    userId: userModel.uid,
+                    name: userModel.nome,
+                    email: userModel.email,
+                    photoURL: userModel.photoURL, // This comes from Firestore
+                    memberSince: userModel.dataCriacao
+                )
+                print("📸 HomeInteractor: profile.photoURL: \(profile.photoURL ?? "nil")")
+                self?.output?.userProfileDidLoad(profile)
+                
+            case .failure(let error):
+                print("❌ HomeInteractor: Failed to fetch user from Firestore - \(error.localizedDescription)")
+                
+                // Fallback to Firebase Auth data if Firestore fails
+                if let authUser = Auth.auth().currentUser {
+                    let profile = UserProfile(
+                        userId: authUser.uid,
+                        name: authUser.displayName,
+                        email: authUser.email ?? "usuário@exemplo.com",
+                        photoURL: authUser.photoURL?.absoluteString,
+                        memberSince: authUser.metadata.creationDate ?? Date()
+                    )
+                    self?.output?.userProfileDidLoad(profile)
+                } else {
+                    self?.output?.userProfileDidFail(error: error)
+                }
+            }
         }
+    }
+    
+    func fetchScheduledExams() {
+        print("🔄 HomeInteractor: Fetching scheduled exams")
         
-        // Get user email from Firebase Auth
-        if let user = Auth.auth().currentUser {
-            let profile = UserProfile(
-                userId: currentUserId,
-                name: user.displayName,
-                email: user.email ?? "usuário@exemplo.com",
-                photoURL: user.photoURL?.absoluteString,
-                memberSince: user.metadata.creationDate ?? Date()
-            )
-            output?.userProfileDidLoad(profile)
-        } else {
-            // Fallback to mock data
-            let profile = UserProfile.mock(userId: currentUserId)
-            output?.userProfileDidLoad(profile)
+        exameService.fetchScheduledExams { [weak self] result in
+            switch result {
+            case .success(let exames):
+                print("✅ HomeInteractor: Fetched \(exames.count) scheduled exams")
+                
+                // Limit to next 3 exams
+                let nextExams = Array(exames.prefix(3))
+                self?.output?.scheduledExamsDidLoad(nextExams)
+                
+            case .failure(let error):
+                print("❌ HomeInteractor: Failed to fetch scheduled exams - \(error.localizedDescription)")
+                // Don't fail the whole screen if scheduled exams fail
+                // Just return empty array
+                self?.output?.scheduledExamsDidLoad([])
+            }
         }
     }
 }

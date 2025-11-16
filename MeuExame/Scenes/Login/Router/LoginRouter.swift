@@ -61,12 +61,8 @@ extension LoginRouter: LoginRouterProtocol {
     func navigateToForgotPassword() {
         print("🧭 LoginRouter: Navigating to Forgot Password")
         
-        // TODO: Implementar navegação para ForgotPassword quando o módulo existir
-        // Por enquanto, mostra um alert
-        showPlaceholderAlert(
-            title: "Recuperar Senha",
-            message: "A recuperação de senha será implementada em breve.\n\nPor enquanto, você pode usar o Firebase Console para resetar senhas manualmente."
-        )
+        let forgotPasswordVC = ForgotPasswordRouter.createModule()
+        viewController?.navigationController?.pushViewController(forgotPasswordVC, animated: true)
     }
     
     func navigateToMainScreen() {

@@ -43,6 +43,14 @@ protocol ExamesListPresenterProtocol: PresenterProtocol {
     
     /// Called when the user taps filter button
     func didTapFilter()
+    
+    /// Applies a filter to the exam list
+    /// - Parameter filter: The filter to apply
+    func applyFilter(_ filter: ExamFilter)
+    
+    /// Applies a sort order to the exam list
+    /// - Parameter sort: The sort order to apply
+    func applySort(_ sort: ExamSort)
 }
 
 /// Protocol for the ExamesList Interactor.

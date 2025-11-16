@@ -52,6 +52,11 @@ final class HomeViewController: UIViewController {
         homeView.addExamButton.addTarget(self, action: #selector(addExamButtonTapped), for: .touchUpInside)
         homeView.aboutButton.addTarget(self, action: #selector(aboutButtonTapped), for: .touchUpInside)
         
+        // Configure empty state CTA button closure
+        homeView.onAddExamTapped = { [weak self] in
+            self?.addExamButtonTapped()
+        }
+        
         // Profile image tap gesture
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(profileImageTapped))
         homeView.profileImageView.addGestureRecognizer(tapGesture)
@@ -84,6 +89,10 @@ extension HomeViewController: HomeViewProtocol {
     
     func updateUserProfile(_ profile: UserProfile) {
         homeView.updateProfile(profile)
+    }
+    
+    func updateScheduledExams(_ exams: [ExameModel]) {
+        homeView.updateScheduledExams(exams)
     }
     
     // MARK: - ViewProtocol (inherited from HomeViewProtocol)

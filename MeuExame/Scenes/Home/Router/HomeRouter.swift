@@ -15,10 +15,14 @@ final class HomeRouter {
     static func createModule() -> UIViewController {
         print("🏗️ HomeRouter: Creating Home module")
         
+        // Get services
+        let exameService = DependencyContainer.shared.makeExamesService()
+        let userService = DependencyContainer.shared.makeUserService()
+        
         // Create VIPER components
         let view = HomeViewController()
         let presenter = HomePresenter()
-        let interactor = HomeInteractor()
+        let interactor = HomeInteractor(exameService: exameService, userService: userService)
         let router = HomeRouter()
         
         // Connect VIPER components (Dependency Injection)
@@ -55,14 +59,8 @@ extension HomeRouter: HomeRouterProtocol {
     func navigateToAddExam() {
         print("🧭 HomeRouter: Navigating to Add Exam")
         
-        // TODO: Navigate to Add Exam screen (será implementado)
-        let alert = UIAlertController(
-            title: "Cadastrar Exame",
-            message: "A tela de cadastro de exames será implementada em breve.",
-            preferredStyle: .alert
-        )
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-        viewController?.present(alert, animated: true)
+        let addExamModule = AddExamRouter.createModule()
+        viewController?.present(addExamModule, animated: true)
     }
     
     func navigateToAbout() {
@@ -116,14 +114,10 @@ extension HomeRouter: HomeRouterProtocol {
     func navigateToUserProfile() {
         print("🧭 HomeRouter: Navigating to User Profile")
         
-        // TODO: Navigate to User Profile screen (será implementado)
-        let alert = UIAlertController(
-            title: "Perfil do Usuário",
-            message: "Aqui você poderá:\n• Editar seu perfil\n• Trocar senha\n• Enviar foto de perfil\n• Gerenciar conta\n\n(Em desenvolvimento)",
-            preferredStyle: .alert
-        )
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-        viewController?.present(alert, animated: true)
+        let profileVC = ProfileRouter.createModule()
+        let navController = UINavigationController(rootViewController: profileVC)
+        navController.modalPresentationStyle = .fullScreen
+        viewController?.present(navController, animated: true)
     }
     
     func navigateToExamList() {

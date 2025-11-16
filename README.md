@@ -1,147 +1,267 @@
 # MeuExame
 
-An iOS application built with Swift and UIKit using the VIPER architecture pattern.
+Aplicativo iOS para gerenciamento de exames médicos, desenvolvido com Swift e UIKit seguindo a arquitetura VIPER.
 
-## Project Information
+## 📱 Sobre o Projeto
+
+MeuExame é uma aplicação completa que permite aos usuários cadastrar, visualizar e gerenciar seus exames médicos de forma organizada e segura. O app oferece funcionalidades como agendamento de exames, notificações, anexo de arquivos e visualização de resultados.
+
+## 📋 Informações do Projeto
 
 - **Bundle ID**: com.meuexame.app
 - **iOS Deployment Target**: iOS 15.0+
-- **Language**: Swift 5.0
-- **UI Framework**: UIKit (View Code - Programmatic UI)
-- **Architecture**: VIPER
-- **Dependency Manager**: Swift Package Manager (SPM)
+- **Linguagem**: Swift 5.0
+- **UI Framework**: UIKit (View Code - 100% Programático)
+- **Arquitetura**: VIPER
+- **Gerenciador de Dependências**: Swift Package Manager (SPM)
 - **Backend**: Firebase (Auth, Firestore, Storage)
+- **Gerenciador de Projeto**: Tuist
 
-## Project Structure
+## 🏗️ Estrutura do Projeto
 
 ```
 MeuExame/
 ├── AppDelegate.swift
 ├── SceneDelegate.swift
 ├── Info.plist
-├── Scenes/
-│   └── Login/              # Login module (VIPER)
+├── Scenes/                          # Módulos VIPER
+│   ├── Login/                       # Autenticação
+│   ├── Register/                    # Cadastro de usuário
+│   ├── ForgotPassword/              # Recuperação de senha
+│   ├── Home/                        # Tela inicial com resumo
+│   ├── ExamesList/                  # Lista de exames
+│   ├── ExameDetail/                 # Detalhes do exame
+│   │   └── FileViewer/              # Visualizador de arquivos
+│   ├── AddExam/                     # Cadastro de exame
+│   ├── Profile/                     # Perfil do usuário
+│   ├── ScheduledExamsList/          # Lista de exames agendados
+│   └── Exames/
+│       └── Entity/
+│           └── ExameModel.swift     # Modelo de dados
 ├── Common/
-│   ├── Helpers/            # Helper classes and utilities
-│   ├── Protocols/          # Common protocols
-│   └── Extensions/         # Swift extensions
+│   ├── Adapters/                    # Adaptadores (Firestore)
+│   ├── Entities/                    # Entidades compartilhadas
+│   ├── Helpers/                     # Classes auxiliares
+│   │   ├── DependencyContainer.swift
+│   │   ├── ImageLoader.swift
+│   │   └── MainTabBarController.swift
+│   └── Protocols/                   # Protocolos base VIPER
 ├── Services/
-│   ├── Firebase/           # Firebase services
-│   └── Networking/         # Network layer
+│   ├── Firebase/                    # Serviços Firebase
+│   │   ├── FirebaseManager.swift
+│   │   └── AuthServiceProtocol.swift
+│   └── Firestore/                   # Serviços Firestore
+│       ├── FirestoreExamesService.swift
+│       └── FirestoreUserService.swift
+│   ├── LocalNotificationService.swift
+│   ├── ExamesServiceProtocol.swift
+│   ├── UserServiceProtocol.swift
+│   ├── NotificationServiceProtocol.swift
+│   └── StorageServiceProtocol.swift
 └── Resources/
-    ├── Assets.xcassets     # App assets
+    ├── Assets.xcassets              # Assets do app
     └── LaunchScreen.storyboard
 ```
 
-## Features
+## ✨ Funcionalidades Implementadas
 
-- ✅ Programmatic UI (View Code) - No Storyboards for main UI
-- ✅ VIPER Architecture ready
-- ✅ Modular structure for scalability
-- ✅ Swift 5.0
-- ✅ iOS 15.0+ support
-- ✅ Firebase Integration (Auth, Firestore, Storage)
-- ✅ Dependency Injection Pattern
-- ✅ Protocol-Oriented Design
+### 🔐 Autenticação
+- ✅ Login com email e senha
+- ✅ Cadastro de novos usuários
+- ✅ Recuperação de senha
+- ✅ Logout
+- ✅ Persistência de sessão
 
-## Getting Started
+### 🏠 Tela Inicial (Home)
+- ✅ Resumo de exames (total, agendados, realizados, aguardando resultado)
+- ✅ Cards informativos com estatísticas
+- ✅ Navegação rápida para principais funcionalidades
+- ✅ Visualização de foto de perfil
 
-### 1. Clone the Repository
+### 📋 Gerenciamento de Exames
+- ✅ Lista completa de exames com filtros
+- ✅ Filtros por status (agendados, realizados, aguardando resultado)
+- ✅ Ordenação por nome ou data
+- ✅ Busca por nome do exame
+- ✅ Cadastro de novos exames
+- ✅ Edição de exames existentes
+- ✅ Exclusão de exames
+- ✅ Visualização detalhada de exames
+- ✅ Anexo de múltiplos arquivos (PDFs, imagens)
+- ✅ Visualização de arquivos anexados (in-app)
+- ✅ Compartilhamento de exames
 
+### 📅 Agendamento
+- ✅ Agendamento de exames futuros
+- ✅ Notificações locais para exames agendados
+- ✅ Lista dedicada de exames agendados
+- ✅ Cancelamento de notificações
+
+### 👤 Perfil do Usuário
+- ✅ Visualização e edição de dados pessoais
+- ✅ Upload e atualização de foto de perfil
+- ✅ Alteração de senha
+- ✅ Exclusão de conta
+
+### 🎨 Interface
+- ✅ 100% View Code (sem Storyboards)
+- ✅ Suporte a Dark Mode
+- ✅ Design moderno e responsivo
+- ✅ Feedback visual em todas as ações
+- ✅ Loading states
+- ✅ Tratamento de erros com mensagens claras
+
+## 🚀 Como Começar
+
+### Pré-requisitos
+
+- Xcode 15.0+
+- iOS 15.0+
+- Swift 5.0+
+- Tuist instalado ([Instalação do Tuist](https://docs.tuist.io/installation))
+
+### Instalação
+
+1. **Clone o repositório**
 ```bash
 git clone https://github.com/tbdbatista/meu-exame.git
 cd meu-exame
 ```
 
-### 2. Configure Firebase
+2. **Instale o Tuist (se ainda não tiver)**
+```bash
+curl -Ls https://install.tuist.io | bash
+```
 
-Follow the detailed guide in [FIREBASE_SETUP.md](FIREBASE_SETUP.md) to:
-- Add Firebase dependencies via Swift Package Manager
-- Download and add `GoogleService-Info.plist`
-- Configure Firebase services
+3. **Configure o Firebase**
+   - Siga o guia detalhado em [FIREBASE_SETUP.md](FIREBASE_SETUP.md)
+   - Adicione o arquivo `GoogleService-Info.plist` na pasta `MeuExame/`
+   - Configure os serviços Firebase (Auth, Firestore, Storage)
 
-### 3. Open and Run
+4. **Gere o projeto com Tuist**
+```bash
+tuist generate
+```
 
-1. Open `MeuExame.xcodeproj` in Xcode
-2. Wait for SPM to resolve dependencies
-3. Select your target device or simulator
-4. Build and run (⌘R)
+5. **Abra o workspace**
+```bash
+open MeuExame.xcworkspace
+```
 
-## Architecture - VIPER
+6. **Execute o projeto**
+   - Selecione um simulador ou dispositivo
+   - Pressione ⌘R para build e run
 
-The project follows the VIPER (View, Interactor, Presenter, Entity, Router) architecture pattern:
+## 🏛️ Arquitetura - VIPER
 
-- **View**: Displays UI and forwards user actions to the Presenter
-- **Interactor**: Contains business logic
-- **Presenter**: Contains view logic for preparing content for display and reacting to user inputs
-- **Entity**: Contains basic model objects
-- **Router**: Handles navigation between modules
+O projeto segue a arquitetura VIPER (View, Interactor, Presenter, Entity, Router):
 
-## Requirements
+- **View**: Exibe a UI e repassa ações do usuário para o Presenter
+- **Interactor**: Contém a lógica de negócio
+- **Presenter**: Contém a lógica de apresentação e formatação de dados
+- **Entity**: Modelos de dados
+- **Router**: Gerencia navegação entre módulos
 
-- Xcode 15.0+
-- iOS 15.0+
-- Swift 5.0+
+### Estrutura de um Módulo VIPER
 
-## Dependencies
+```
+SceneName/
+├── View/
+│   └── SceneNameView.swift          # UI programática
+├── ViewController/
+│   └── SceneNameViewController.swift # View Controller
+├── Presenter/
+│   └── SceneNamePresenter.swift     # Lógica de apresentação
+├── Interactor/
+│   └── SceneNameInteractor.swift    # Lógica de negócio
+├── Router/
+│   └── SceneNameRouter.swift        # Navegação
+└── Protocols/
+    └── SceneNameProtocols.swift     # Protocolos VIPER
+```
 
-The project uses Swift Package Manager for dependency management:
+## 🔧 Dependências
+
+O projeto utiliza Swift Package Manager para gerenciamento de dependências:
 
 - **Firebase iOS SDK** (11.0.0+)
-  - FirebaseAuth - User authentication
-  - FirebaseFirestore - Cloud database
-  - FirebaseStorage - File storage
+  - FirebaseAuth - Autenticação de usuários
+  - FirebaseFirestore - Banco de dados NoSQL
+  - FirebaseStorage - Armazenamento de arquivos
 
-See [FIREBASE_SETUP.md](FIREBASE_SETUP.md) for detailed setup instructions.
+## 🎯 Injeção de Dependências
 
-## Architecture Details
-
-### Dependency Injection
-
-The project uses a `DependencyContainer` to manage dependencies:
+O projeto utiliza `DependencyContainer` para gerenciar dependências:
 
 ```swift
 let container = DependencyContainer.shared
-let loginVC = container.makeLoginModule()
+let examesService = container.makeExamesService()
+let userService = container.makeUserService()
+let notificationService = container.makeNotificationService()
 ```
 
-### Firebase Services
+### Serviços Disponíveis
 
-All Firebase services are abstracted through protocols:
-- `FirebaseConfigurable` - Configuration management
-- `FirebaseAuthenticationService` - Authentication operations
-- `FirebaseFirestoreService` - Database operations
-- `FirebaseStorageService` - File storage operations
+- `makeExamesService()` - Serviço de gerenciamento de exames
+- `makeUserService()` - Serviço de gerenciamento de usuários
+- `makeNotificationService()` - Serviço de notificações locais
 
-This allows for:
-- Easy testing with mock implementations
-- Loose coupling between components
-- Flexibility to swap implementations
+## 🔥 Serviços Firebase
 
-## Testing
+Todos os serviços Firebase são abstraídos através de protocolos:
 
-The project is designed with testability in mind using dependency injection:
+- `FirebaseConfigurable` - Configuração do Firebase
+- `AuthServiceProtocol` - Operações de autenticação
+- `ExamesServiceProtocol` - Operações de exames
+- `UserServiceProtocol` - Operações de usuário
+- `StorageServiceProtocol` - Operações de armazenamento
+- `NotificationServiceProtocol` - Operações de notificações
+
+Isso permite:
+- Testes fáceis com implementações mock
+- Baixo acoplamento entre componentes
+- Flexibilidade para trocar implementações
+
+## 📱 Módulos Implementados
+
+### Autenticação
+- **Login**: Autenticação com email e senha
+- **Register**: Cadastro de novos usuários
+- **ForgotPassword**: Recuperação de senha via email
+
+### Principal
+- **Home**: Tela inicial com resumo e estatísticas
+- **ExamesList**: Lista completa de exames com filtros e busca
+- **ExameDetail**: Visualização e edição de exames
+- **AddExam**: Cadastro de novos exames
+- **ScheduledExamsList**: Lista de exames agendados
+- **Profile**: Gerenciamento de perfil do usuário
+
+### Utilitários
+- **FileViewer**: Visualizador de arquivos (PDFs, imagens) dentro do app
+
+## 🧪 Testabilidade
+
+O projeto foi desenvolvido com testabilidade em mente usando injeção de dependências:
 
 ```swift
-// Example: Mock Firebase for testing
+// Exemplo: Mock Firebase para testes
 class MockFirebaseManager: FirebaseConfigurable {
     func configure() { }
     func isConfigured() -> Bool { return true }
 }
 
-// Inject in tests
-let appDelegate = AppDelegate()
-appDelegate.firebaseManager = MockFirebaseManager()
+// Injetar em testes
+let container = DependencyContainer(firebaseManager: MockFirebaseManager())
 ```
 
-## Next Steps
+## 📚 Documentação Adicional
 
-- ✅ Firebase integration complete
-- ⏳ Implement Login module with VIPER components
-- ⏳ Configure networking layer
-- ⏳ Add common extensions and utilities
+- [FIREBASE_SETUP.md](FIREBASE_SETUP.md) - Guia de configuração do Firebase
+- [GIT_WORKFLOW.md](GIT_WORKFLOW.md) - Workflow Git do projeto
+- [TUIST_GUIDE.md](TUIST_GUIDE.md) - Guia de uso do Tuist
 
-## Git Workflow
+## 🔄 Git Workflow
 
 Este projeto segue um workflow Git estruturado com branches. Consulte [GIT_WORKFLOW.md](GIT_WORKFLOW.md) para detalhes completos.
 
@@ -180,7 +300,7 @@ Seguimos [Conventional Commits](https://www.conventionalcommits.org/):
 
 **Exemplo:** `git commit -m "feat(login): implementa validação de email"`
 
-## Contributing
+## 🤝 Contribuindo
 
 1. Fork o repositório
 2. Clone seu fork
@@ -192,7 +312,12 @@ Seguimos [Conventional Commits](https://www.conventionalcommits.org/):
 
 Consulte [GIT_WORKFLOW.md](GIT_WORKFLOW.md) para guia completo!
 
+## 📄 Licença
+
+Este projeto foi desenvolvido como parte de um trabalho acadêmico.
+
 ---
 
-Created on November 9, 2025
-
+**Criado em:** Novembro 2025  
+**Versão:** 1.0.0  
+**Status:** ✅ Projeto Finalizado
