@@ -1,5 +1,4 @@
 import UIKit
-import Photos
 
 /// ProfileViewController manages the Profile screen
 final class ProfileViewController: UIViewController {
