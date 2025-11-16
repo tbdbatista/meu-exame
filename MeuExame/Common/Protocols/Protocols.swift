@@ -68,30 +68,6 @@ protocol RouterProtocol: AnyObject {
     static func createModule() -> UIViewController
 }
 
-// MARK: - Extended Protocols for Common Use Cases
-
-/// Protocol for presenters that handle list operations
-protocol ListPresenterProtocol: PresenterProtocol {
-    /// Called when the user wants to refresh the list
-    func refreshData()
-    
-    /// Called when the user scrolls to the bottom (pagination)
-    func loadMore()
-}
-
-/// Protocol for interactors that fetch data
-protocol DataInteractorProtocol: InteractorProtocol {
-    /// Fetches data from a data source (API, database, etc.)
-    func fetchData()
-}
-
-/// Protocol for routers that handle detail navigation
-protocol DetailRouterProtocol: RouterProtocol {
-    /// Navigates to a detail screen
-    /// - Parameter id: The identifier of the item to show details
-    func navigateToDetail(with id: String)
-}
-
 // MARK: - Default Implementations (Extensions)
 
 extension ViewProtocol where Self: UIViewController {
