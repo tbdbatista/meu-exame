@@ -67,6 +67,13 @@ final class RegisterView: UIView {
         textField.isSecureTextEntry = true
         textField.autocapitalizationType = .none
         textField.autocorrectionType = .no
+        // Desabilitar sugestão de senha forte do iOS
+        if #available(iOS 12.0, *) {
+            textField.textContentType = .oneTimeCode
+            textField.passwordRules = nil
+        } else {
+            textField.textContentType = .none
+        }
         textField.borderStyle = .roundedRect
         textField.font = .systemFont(ofSize: 16)
         textField.backgroundColor = .systemGray6
@@ -88,6 +95,13 @@ final class RegisterView: UIView {
         textField.isSecureTextEntry = true
         textField.autocapitalizationType = .none
         textField.autocorrectionType = .no
+        // Desabilitar sugestão de senha forte do iOS
+        if #available(iOS 12.0, *) {
+            textField.textContentType = .oneTimeCode
+            textField.passwordRules = nil
+        } else {
+            textField.textContentType = .none
+        }
         textField.borderStyle = .roundedRect
         textField.font = .systemFont(ofSize: 16)
         textField.backgroundColor = .systemGray6
