@@ -2,6 +2,11 @@
 
 Aplicativo iOS para gerenciamento de exames médicos, desenvolvido com Swift e UIKit seguindo a arquitetura VIPER.
 
+# Vídeos de demonstração
+video 1 - https://youtu.be/jN7wIQcKJDY
+
+video 2 - https://youtu.be/S9ot6mltZSk
+
 ## 📱 Sobre o Projeto
 
 MeuExame é uma aplicação completa que permite aos usuários cadastrar, visualizar e gerenciar seus exames médicos de forma organizada e segura. O app oferece funcionalidades como agendamento de exames, notificações, anexo de arquivos e visualização de resultados.
