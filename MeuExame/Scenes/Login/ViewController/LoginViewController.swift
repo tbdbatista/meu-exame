@@ -43,13 +43,7 @@ final class LoginViewController: UIViewController {
         super.viewDidLoad()
         setupNavigationBar()
         setupActions()
-        setupDefaultCredentials()
         presenter?.viewDidLoad()
-    }
-    
-    private func setupDefaultCredentials() {
-        loginView.emailTextField.text = "tbdbatista@gmail.com"
-        loginView.passwordTextField.text = "123456"
     }
     
     override func viewWillAppear(_ animated: Bool) {

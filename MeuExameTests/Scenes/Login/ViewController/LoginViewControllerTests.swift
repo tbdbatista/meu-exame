@@ -23,12 +23,12 @@ final class LoginViewControllerTests: XCTestCase {
         XCTAssertEqual(presenterSpy.viewDidLoadCallCount, 1)
     }
 
-    func test_viewDidLoad_setsDefaultCredentials() {
+    func test_viewDidLoad_doesNotPreFillCredentials() {
         sut.loadViewIfNeeded()
         let loginView = extractLoginView()
 
-        XCTAssertEqual(loginView.emailTextField.text, "tbdbatista@gmail.com")
-        XCTAssertEqual(loginView.passwordTextField.text, "123456")
+        XCTAssertEqual(loginView.emailTextField.text, "")
+        XCTAssertEqual(loginView.passwordTextField.text, "")
     }
 
     func test_viewWillAppear_callsPresenterViewWillAppear() {
