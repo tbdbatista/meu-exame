@@ -107,8 +107,8 @@ extension LoginPresenter: LoginInteractorOutputProtocol {
         // Clear fields
         loginView?.clearFields()
         
-        // Show success message
-         loginView?.showSuccess(title: "Sucesso", message: "Login realizado com sucesso!")
+        // Show success message (optional, pode navegar direto)
+        // loginView?.showSuccess(title: "Sucesso", message: "Login realizado com sucesso!")
         
         // Navigate to main screen
         loginRouter?.navigateToMainScreen()
