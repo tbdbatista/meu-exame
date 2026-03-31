@@ -10,12 +10,27 @@ final class LoginViewController: UIViewController {
     var presenter: PresenterProtocol?
     
     /// View customizada de Login
-    private let loginView = LoginView()
+    private let loginView: LoginView
     
     // MARK: - Private Helpers
     
     private var loginPresenter: LoginPresenterProtocol? {
         return presenter as? LoginPresenterProtocol
+    }
+
+    // MARK: - Initializers
+
+    init(
+        presenter: PresenterProtocol? = nil,
+        loginView: LoginView = LoginView()
+    ) {
+        self.presenter = presenter
+        self.loginView = loginView
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
     }
     
     // MARK: - Lifecycle
@@ -28,7 +43,13 @@ final class LoginViewController: UIViewController {
         super.viewDidLoad()
         setupNavigationBar()
         setupActions()
+        setupDefaultCredentials()
         presenter?.viewDidLoad()
+    }
+    
+    private func setupDefaultCredentials() {
+        loginView.emailTextField.text = "tbdbatista@gmail.com"
+        loginView.passwordTextField.text = "123456"
     }
     
     override func viewWillAppear(_ animated: Bool) {

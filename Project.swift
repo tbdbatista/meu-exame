@@ -44,6 +44,28 @@ let project = Project(
                     "INFOPLIST_KEY_UISupportedInterfaceOrientations": "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
                 ]
             )
+        ),
+        .target(
+            name: "MeuExameTests",
+            destinations: .iOS,
+            product: .unitTests,
+            bundleId: "com.meuexame.app.tests",
+            infoPlist: .default,
+            sources: ["MeuExameTests/**/*.swift"],
+            dependencies: [
+                .target(name: "MeuExame")
+            ]
+        ),
+        .target(
+            name: "MeuExameUITests",
+            destinations: .iOS,
+            product: .uiTests,
+            bundleId: "com.meuexame.app.uitests",
+            infoPlist: .default,
+            sources: ["MeuExameUITests/**/*.swift"],
+            dependencies: [
+                .target(name: "MeuExame")
+            ]
         )
     ]
 )

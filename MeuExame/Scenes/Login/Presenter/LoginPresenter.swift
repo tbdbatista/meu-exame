@@ -13,7 +13,15 @@ final class LoginPresenter {
     
     // MARK: - Initializer
     
-    init() {}
+    init(
+        view: ViewProtocol? = nil,
+        interactor: InteractorProtocol? = nil,
+        router: RouterProtocol? = nil
+    ) {
+        self.view = view
+        self.interactor = interactor
+        self.router = router
+    }
     
     // MARK: - Private Helpers
     
@@ -36,15 +44,6 @@ extension LoginPresenter: LoginPresenterProtocol {
     func viewDidLoad() {
         // Initial setup if needed
         print("📱 LoginPresenter: View did load")
-    }
-    
-    func viewWillAppear() {
-        // Clear fields when returning to login
-        // view?.clearFields() // Uncomment if you want to clear on appear
-    }
-    
-    func viewDidDisappear() {
-        // Cleanup if needed
     }
     
     func didTapLogin(email: String, password: String) {
@@ -71,10 +70,8 @@ extension LoginPresenter: LoginPresenterProtocol {
             return
         }
         
-        // Show loading
         loginView?.showLoading()
         
-        // Delegate to Interactor for business logic
         loginInteractor?.performLogin(email: email, password: password)
     }
     
@@ -110,8 +107,8 @@ extension LoginPresenter: LoginInteractorOutputProtocol {
         // Clear fields
         loginView?.clearFields()
         
-        // Show success message (optional, pode navegar direto)
-        // loginView?.showSuccess(title: "Sucesso", message: "Login realizado com sucesso!")
+        // Show success message
+         loginView?.showSuccess(title: "Sucesso", message: "Login realizado com sucesso!")
         
         // Navigate to main screen
         loginRouter?.navigateToMainScreen()

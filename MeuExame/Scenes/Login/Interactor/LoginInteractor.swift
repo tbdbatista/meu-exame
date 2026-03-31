@@ -18,10 +18,19 @@ final class LoginInteractor {
     
     // MARK: - Initializer
     
-    /// Initializes the LoginInteractor with an authentication service
-    /// - Parameter authService: The authentication service to use (defaults to FirebaseManager)
-    init(authService: AuthServiceProtocol = FirebaseManager.shared) {
+    /// Initializes the LoginInteractor with dependencies.
+    /// - Parameters:
+    ///   - authService: The authentication service to use (defaults to FirebaseManager).
+    ///   - presenter: Optional presenter reference for protocol conformance.
+    ///   - output: Optional output callback reference.
+    init(
+        authService: AuthServiceProtocol = FirebaseManager.shared,
+        presenter: PresenterProtocol? = nil,
+        output: LoginInteractorOutputProtocol? = nil
+    ) {
         self.authService = authService
+        self.presenter = presenter
+        self.output = output
         print("🔧 LoginInteractor: Initialized with auth service")
     }
 }
